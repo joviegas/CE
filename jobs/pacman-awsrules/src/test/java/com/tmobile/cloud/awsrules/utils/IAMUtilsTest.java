@@ -37,18 +37,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
-import com.amazonaws.services.identitymanagement.model.GetPolicyVersionResult;
-import com.amazonaws.services.identitymanagement.model.GetRolePolicyResult;
-import com.amazonaws.services.identitymanagement.model.GetUserPolicyResult;
-import com.amazonaws.services.identitymanagement.model.ListAccessKeysResult;
-import com.amazonaws.services.identitymanagement.model.ListAttachedRolePoliciesResult;
-import com.amazonaws.services.identitymanagement.model.ListAttachedUserPoliciesResult;
-import com.amazonaws.services.identitymanagement.model.ListPolicyVersionsResult;
-import com.amazonaws.services.identitymanagement.model.ListRolePoliciesResult;
-import com.amazonaws.services.identitymanagement.model.ListUserPoliciesResult;
-import com.amazonaws.services.identitymanagement.model.PolicyVersion;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({URLDecoder.class, PacmanUtils.class})
@@ -58,19 +48,19 @@ public class IAMUtilsTest {
     IAMUtils iamUtils;
     
     @Mock
-    AmazonIdentityManagementClient iamClient;
+    IdentityManagementClient iamClient;
     
     @Before
     public void setUp() throws Exception{
-        iamClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        iamClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
  
     @SuppressWarnings("static-access")
     @Test
     public void getAccessKeyInformationForUserTest() throws Exception {
         
-        ListAccessKeysResult keysResult = new ListAccessKeysResult();
-        keysResult.setIsTruncated(false);
+        ListAccessKeysResponse keysResult = ListAccessKeysResponse.builder().build();
+        keysResult.isTruncated(false);
         
         when(iamClient.listAccessKeys(anyObject())).thenReturn(keysResult);
         assertThat(iamUtils.getAccessKeyInformationForUser("user",iamClient),is(notNullValue()));
@@ -81,7 +71,7 @@ public class IAMUtilsTest {
     @Test
     public void getAttachedPolicyOfIAMUserTest() throws Exception {
         
-    	ListAttachedUserPoliciesResult policiesResult = new ListAttachedUserPoliciesResult();
+    	ListAttachedUserPoliciesResponse policiesResult = ListAttachedUserPoliciesResponse.builder().build();
         
         when(iamClient.listAttachedUserPolicies(anyObject())).thenReturn(policiesResult);
         assertThat(iamUtils.getAttachedPolicyOfIAMUser("user",iamClient),is(notNullValue()));
@@ -91,35 +81,35 @@ public class IAMUtilsTest {
     @SuppressWarnings("static-access")
     @Test
     public void getActionListByPolicyTest() throws Exception {
-    	 AttachedPolicy attachedPolicies = new AttachedPolicy();
-         attachedPolicies.setPolicyName("IAMFullAccess");
+    	 AttachedPolicy attachedPolicies = AttachedPolicy.builder().build();
+         attachedPolicies.policyName("IAMFullAccess");
          List<AttachedPolicy> policies = new ArrayList<>();
          policies.add(attachedPolicies);
          
-         PolicyVersion versions = new PolicyVersion();
-         versions.setIsDefaultVersion(true);
-         versions.setVersionId("123");
-         versions.setDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
-        ListPolicyVersionsResult policyVersions = new ListPolicyVersionsResult();
-        policyVersions.setVersions(Arrays.asList(versions));
+         PolicyVersion versions = PolicyVersion.builder().build();
+         versions.isDefaultVersion(true);
+         versions.versionId("123");
+         versions.document("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        ListPolicyVersionsResponse policyVersions = ListPolicyVersionsResponse.builder().build();
+        policyVersions.versions(Arrays.asList(versions));
         
         
-        ListAttachedUserPoliciesResult attachedUserPoliciesResult = new ListAttachedUserPoliciesResult();
-        attachedUserPoliciesResult.setAttachedPolicies(policies);
-        attachedUserPoliciesResult.setIsTruncated(false);
+        ListAttachedUserPoliciesResponse attachedUserPoliciesResult = ListAttachedUserPoliciesResponse.builder().build();
+        attachedUserPoliciesResult.attachedPolicies(policies);
+        attachedUserPoliciesResult.isTruncated(false);
         
-        ListUserPoliciesResult listUserPoliciesResult = new ListUserPoliciesResult();
-        listUserPoliciesResult.setPolicyNames(Arrays.asList("123"));
-        listUserPoliciesResult.setIsTruncated(false);
+        ListUserPoliciesResponse listUserPoliciesResult = ListUserPoliciesResponse.builder().build();
+        listUserPoliciesResult.policyNames(Arrays.asList("123"));
+        listUserPoliciesResult.isTruncated(false);
         
-        GetUserPolicyResult policyResult = new GetUserPolicyResult();
+        GetUserPolicyResponse policyResult = GetUserPolicyResponse.builder().build();
         
-        policyResult.setPolicyName("123");
-        policyResult.setPolicyDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
-        policyResult.setUserName("123");
+        policyResult.policyName("123");
+        policyResult.policyDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        policyResult.userName("123");
          
-        GetPolicyVersionResult versionResult = new GetPolicyVersionResult();
-        versionResult.setPolicyVersion(versions);
+        GetPolicyVersionResponse versionResult = GetPolicyVersionResponse.builder().build();
+        versionResult.policyVersion(versions);
         when(iamClient.listAttachedUserPolicies(anyObject())).thenReturn(attachedUserPoliciesResult);
         when(iamClient.listUserPolicies(anyObject())).thenReturn(listUserPoliciesResult);
         when(iamClient.getUserPolicy(anyObject())).thenReturn(policyResult);
@@ -134,35 +124,35 @@ public class IAMUtilsTest {
     @SuppressWarnings("static-access")
     @Test
     public void getActionsByRolePolicyTest() throws Exception {
-    	 AttachedPolicy attachedPolicies = new AttachedPolicy();
-         attachedPolicies.setPolicyName("IAMFullAccess");
+    	 AttachedPolicy attachedPolicies = AttachedPolicy.builder().build();
+         attachedPolicies.policyName("IAMFullAccess");
          List<AttachedPolicy> policies = new ArrayList<>();
          policies.add(attachedPolicies);
          
-         PolicyVersion versions = new PolicyVersion();
-         versions.setIsDefaultVersion(true);
-         versions.setVersionId("123");
-         versions.setDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
-        ListPolicyVersionsResult policyVersions = new ListPolicyVersionsResult();
-        policyVersions.setVersions(Arrays.asList(versions));
+         PolicyVersion versions = PolicyVersion.builder().build();
+         versions.isDefaultVersion(true);
+         versions.versionId("123");
+         versions.document("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        ListPolicyVersionsResponse policyVersions = ListPolicyVersionsResponse.builder().build();
+        policyVersions.versions(Arrays.asList(versions));
         
         
-        ListAttachedRolePoliciesResult attachedRolePoliciesResult = new ListAttachedRolePoliciesResult();
-        attachedRolePoliciesResult.setAttachedPolicies(policies);
-        attachedRolePoliciesResult.setIsTruncated(false);
+        ListAttachedRolePoliciesResponse attachedRolePoliciesResult = ListAttachedRolePoliciesResponse.builder().build();
+        attachedRolePoliciesResult.attachedPolicies(policies);
+        attachedRolePoliciesResult.isTruncated(false);
         
-        ListRolePoliciesResult rolePoliciesResult = new ListRolePoliciesResult();
-        rolePoliciesResult.setPolicyNames(Arrays.asList("123"));
-        rolePoliciesResult.setIsTruncated(false);
+        ListRolePoliciesResponse rolePoliciesResult = ListRolePoliciesResponse.builder().build();
+        rolePoliciesResult.policyNames(Arrays.asList("123"));
+        rolePoliciesResult.isTruncated(false);
         
-        GetRolePolicyResult policyResult = new GetRolePolicyResult();
+        GetRolePolicyResponse policyResult = GetRolePolicyResponse.builder().build();
         
-        policyResult.setPolicyName("123");
-        policyResult.setPolicyDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
-        policyResult.setRoleName("123");
+        policyResult.policyName("123");
+        policyResult.policyDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"],\"Resource\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        policyResult.roleName("123");
          
-        GetPolicyVersionResult versionResult = new GetPolicyVersionResult();
-        versionResult.setPolicyVersion(versions);
+        GetPolicyVersionResponse versionResult = GetPolicyVersionResponse.builder().build();
+        versionResult.policyVersion(versions);
         when(iamClient.listAttachedRolePolicies(anyObject())).thenReturn(attachedRolePoliciesResult);
         when(iamClient.listRolePolicies(anyObject())).thenReturn(rolePoliciesResult);
         when(iamClient.getRolePolicy(anyObject())).thenReturn(policyResult);

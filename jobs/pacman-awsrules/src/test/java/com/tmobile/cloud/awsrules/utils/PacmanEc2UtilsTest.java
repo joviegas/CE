@@ -37,15 +37,14 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeFlowLogsRequest;
-import com.amazonaws.services.ec2.model.DescribeFlowLogsResult;
-import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
-import com.amazonaws.services.ec2.model.DescribeVolumesResult;
-import com.amazonaws.services.ec2.model.FlowLog;
-import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.ec2.model.Volume;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeFlowLogsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeFlowLogsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
+import software.amazon.awssdk.services.ec2.model.FlowLog;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.ec2.model.Volume;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 
 @RunWith(PowerMockRunner.class)
@@ -57,7 +56,7 @@ public class PacmanEc2UtilsTest {
     
     
     @Mock
-    AmazonEC2 ec2ServiceClient;
+    Ec2Client ec2ServiceClient;
     
     @Mock
     DescribeVolumesRequest describeVolumesRequest;
@@ -67,7 +66,7 @@ public class PacmanEc2UtilsTest {
     
     @Before
     public void setUp() throws Exception{
-        ec2ServiceClient = PowerMockito.mock(AmazonEC2.class); 
+        ec2ServiceClient = PowerMockito.mock(Ec2Client.class); 
         describeVolumesRequest = PowerMockito.mock(DescribeVolumesRequest.class); 
         describeFlowLogsRequest = PowerMockito.mock(DescribeFlowLogsRequest.class); 
     }
@@ -76,14 +75,14 @@ public class PacmanEc2UtilsTest {
     @Test
     public void collectAllVolumesTest() throws Exception {
         
-        Volume vol = new Volume();
-        vol.setVolumeId("123");
+        Volume vol = Volume.builder().build();
+        vol.volumeId("123");
         Collection<Volume> volumes = new ArrayList<>();
         volumes.add(vol);
        
         
-        DescribeVolumesResult result = new DescribeVolumesResult();
-        result.setVolumes(volumes);
+        DescribeVolumesResponse result = DescribeVolumesResponse.builder().build();
+        result.volumes(volumes);
         
         when(ec2ServiceClient.describeVolumes(anyObject())).thenReturn(result);
         assertThat(pacmanEc2Utils.collectAllVolumes(ec2ServiceClient,describeVolumesRequest),is(notNullValue()));
@@ -94,14 +93,14 @@ public class PacmanEc2UtilsTest {
     @Test
     public void getFlowLogsTest() throws Exception {
         
-        FlowLog flowLog = new FlowLog();
-        flowLog.setFlowLogId("123");
+        FlowLog flowLog = FlowLog.builder().build();
+        flowLog.flowLogId("123");
         Collection<FlowLog> flowLogs = new ArrayList<>();
         flowLogs.add(flowLog);
        
         
-        DescribeFlowLogsResult flowLogsResult = new DescribeFlowLogsResult();
-        flowLogsResult.setFlowLogs(flowLogs);
+        DescribeFlowLogsResponse flowLogsResult = DescribeFlowLogsResponse.builder().build();
+        flowLogsResult.flowLogs(flowLogs);
         
         when(ec2ServiceClient.describeFlowLogs(anyObject())).thenReturn(flowLogsResult);
         assertThat(pacmanEc2Utils.getFlowLogs(ec2ServiceClient,describeFlowLogsRequest),is(notNullValue()));
@@ -120,8 +119,8 @@ public class PacmanEc2UtilsTest {
     @SuppressWarnings("static-access")
     @Test
     public void checkAccessibleToAllTest() throws Exception {
-        GroupIdentifier identifier = new GroupIdentifier();
-        identifier.setGroupId("sg-5414b52c");
+        GroupIdentifier identifier = GroupIdentifier.builder().build();
+        identifier.groupId("sg-5414b52c");
         Set<GroupIdentifier> secuityGroups = new HashSet<GroupIdentifier>();
         secuityGroups.add(identifier);
         mockStatic(PacmanUtils.class);

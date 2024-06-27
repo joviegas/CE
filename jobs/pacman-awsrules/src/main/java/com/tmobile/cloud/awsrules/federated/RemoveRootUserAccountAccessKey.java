@@ -11,10 +11,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryRequest;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryResult;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryRequest;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryResponse;
 import com.amazonaws.util.StringUtils;
 import com.nimbusds.oauth2.sdk.util.MapUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -65,14 +64,14 @@ public class RemoveRootUserAccountAccessKey extends BasePolicy{
 			throw new InvalidInputException(PacmanRuleConstants.MISSING_CONFIGURATION);
 		}
 
-		GetAccountSummaryResult response = getAccountSummaryResponse(ruleParam);
+		GetAccountSummaryResponse response = getAccountSummaryResponse(ruleParam);
 
-		if(Objects.isNull(response) || Objects.isNull(response.getSummaryMap())) {
+		if(Objects.isNull(response) || Objects.isNull(response.summaryMap())) {
 			logger.error(PacmanRuleConstants.INVALID_ACCOUNT_SUMMARY_RESPONSE);
 			throw new InvalidInputException(PacmanRuleConstants.INVALID_ACCOUNT_SUMMARY_RESPONSE);
 		}
 		
-		Optional<String> opt = Optional.ofNullable(response.getSummaryMap())
+		Optional<String> opt = Optional.ofNullable(response.summaryMap())
 				.map(resource -> checkValidation(resource));
 		PolicyResult ruleResult = Optional.ofNullable(ruleParam).filter(param -> opt.isPresent())
 				.map(param -> buildFailureAnnotation(param, opt.get()))
@@ -82,15 +81,15 @@ public class RemoveRootUserAccountAccessKey extends BasePolicy{
 		return ruleResult;
 	}
 	
-	private GetAccountSummaryResult getAccountSummaryResponse(Map<String, String> ruleParam) {
+	private GetAccountSummaryResponse getAccountSummaryResponse(Map<String, String> ruleParam) {
 		Map<String, String> temp = new HashMap<>();
 		temp.putAll(ruleParam);
 		temp.put("region", "us-west-2");
-		GetAccountSummaryResult response = null;
+		GetAccountSummaryResponse response = null;
 		try {
 			Map<String, Object> map = getClientFor(AWSService.IAM, ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), temp);
-			AmazonIdentityManagementClient identityManagementClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
-			response = identityManagementClient.getAccountSummary(new GetAccountSummaryRequest());
+			IdentityManagementClient identityManagementClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			response = identityManagementClient.getAccountSummary(GetAccountSummaryRequest.builder().build());
 			
 			} catch (UnableToCreateClientException utcce) {
 				logger.error(PacmanRuleConstants.UNABLE_TO_GET_CLIENT_FOR_FOLLOWING_INPUT, utcce);

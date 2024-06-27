@@ -31,10 +31,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -95,12 +94,12 @@ public class IAMUserWithUnapprovedAccessRule extends BasePolicy {
 		logger.debug("========IAMUserWithUnapprovedAccessRule started=========");
 		Map<String, String> ruleParamIam = new HashMap<>();
 		ruleParamIam.putAll(ruleParam);
-		ruleParamIam.put(PacmanSdkConstants.REGION, Regions.DEFAULT_REGION.getName());
+		ruleParamIam.put(PacmanSdkConstants.REGION, Region.DEFAULT_REGION.id());
 
 		Map<String, Object> map = null;
 		Annotation annotation = Annotation.buildAnnotation(ruleParam, Annotation.Type.ISSUE);
 
-		AmazonIdentityManagementClient identityManagementClient = null;
+		IdentityManagementClient identityManagementClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String userName = resourceAttributes.get(USER_NAME);
 		String unapprovedActionsParam = ruleParam.get(PacmanRuleConstants.UNAPPROVED_IAM_ACTIONS);
@@ -126,7 +125,7 @@ public class IAMUserWithUnapprovedAccessRule extends BasePolicy {
 		try {
 			map = getClientFor(AWSService.IAM, roleIdentifyingString, ruleParamIam);
 
-			identityManagementClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			identityManagementClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 			List<String> unApprovedActionList = PacmanUtils.splitStringToAList(unapprovedActionsParam, tagsSplitter);
 
 			Set<String> allowedActionSet = IAMUtils.getAllowedActionsByUserPolicy(identityManagementClient, userName);

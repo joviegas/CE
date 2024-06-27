@@ -1,6 +1,5 @@
 package com.tmobile.cloud.azurerules.virtualMachines;
 
-import com.amazonaws.services.identitymanagement.model.InvalidInputException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

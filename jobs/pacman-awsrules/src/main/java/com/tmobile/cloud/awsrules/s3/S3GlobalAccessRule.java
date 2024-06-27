@@ -14,11 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
-import com.amazonaws.services.s3.model.Permission;
-import com.amazonaws.services.s3.model.PublicAccessBlockConfiguration;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.Permission;
+import software.amazon.awssdk.services.s3.model.PublicAccessBlockConfiguration;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.awsrules.utils.S3PacbotUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -61,7 +61,7 @@ public class S3GlobalAccessRule extends BasePolicy {
     public PolicyResult execute(Map<String, String> ruleParam, Map<String, String> resourceAttributes) {
         logger.debug("========S3GlobalAccessRule started=========");
         Map<String, Object> map = null;
-        AmazonS3Client awsS3Client = null;
+        S3Client awsS3Client = null;
         Map<String, Boolean> checkPolicyMap = new HashMap();
         String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
         String s3BucketName = ruleParam.get(PacmanSdkConstants.RESOURCE_ID);
@@ -99,7 +99,7 @@ public class S3GlobalAccessRule extends BasePolicy {
                 if (StringUtils.isEmpty(resourceAttributes.get("region")))
                     throw new IllegalArgumentException("Region cannot be empty");
                 map = getClientFor(AWSService.S3, roleIdentifyingString, ruleParam);
-                awsS3Client = (AmazonS3Client) map.get(PacmanSdkConstants.CLIENT);
+                awsS3Client = (S3Client) map.get(PacmanSdkConstants.CLIENT);
             } catch (UnableToCreateClientException e) {
                 logger.error("unable to get client for following input", e);
                 throw new InvalidInputException(e.toString());
@@ -114,20 +114,20 @@ public class S3GlobalAccessRule extends BasePolicy {
         }
 
         if (null != awsS3Client) {
-            GetPublicAccessBlockRequest publicAccessBlockRequest = new GetPublicAccessBlockRequest();
-            publicAccessBlockRequest.setBucketName(s3BucketName);
+            GetPublicAccessBlockRequest publicAccessBlockRequest = GetPublicAccessBlockRequest.builder().build();
+            publicAccessBlockRequest.bucketName(s3BucketName);
             try {
-                GetPublicAccessBlockResult accessBlockResult = awsS3Client.getPublicAccessBlock(publicAccessBlockRequest);
-                PublicAccessBlockConfiguration accessBlockConfiguration = accessBlockResult.getPublicAccessBlockConfiguration();
+                GetPublicAccessBlockResponse accessBlockResult = awsS3Client.getPublicAccessBlock(publicAccessBlockRequest);
+                PublicAccessBlockConfiguration accessBlockConfiguration = accessBlockResult.publicAccessBlockConfiguration();
 
-                if (accessBlockConfiguration.getBlockPublicAcls() && accessBlockConfiguration.getIgnorePublicAcls() && accessBlockConfiguration.getBlockPublicPolicy() && accessBlockConfiguration.getRestrictPublicBuckets()) {
+                if (accessBlockConfiguration.blockPublicAcls() && accessBlockConfiguration.ignorePublicAcls() && accessBlockConfiguration.blockPublicPolicy() && accessBlockConfiguration.restrictPublicBuckets()) {
                     logger.debug(s3BucketName, "This Bucket is not publicly accessible");
                     return new PolicyResult(PacmanSdkConstants.STATUS_SUCCESS, PacmanRuleConstants.SUCCESS_MESSAGE);
                 }
-                if (accessBlockConfiguration.getBlockPublicAcls() || accessBlockConfiguration.getIgnorePublicAcls()) {
+                if (accessBlockConfiguration.blockPublicAcls() || accessBlockConfiguration.ignorePublicAcls()) {
                     isRequiredAclCheck = false;
                 }
-                if (accessBlockConfiguration.getBlockPublicPolicy() || accessBlockConfiguration.getRestrictPublicBuckets()) {
+                if (accessBlockConfiguration.blockPublicPolicy() || accessBlockConfiguration.restrictPublicBuckets()) {
                     isRequiredPublicPolicyCheck = false;
                 }
 
@@ -232,7 +232,7 @@ public class S3GlobalAccessRule extends BasePolicy {
         return null;
     }
 
-    private boolean isPolicyTrue(AmazonS3Client awsS3Client, String s3BucketName, String accessType, Map<String, Boolean> checkPolicyMap) {
+    private boolean isPolicyTrue(S3Client awsS3Client, String s3BucketName, String accessType, Map<String, Boolean> checkPolicyMap) {
         Map<String, Boolean> checkPolicy = S3PacbotUtils.getPublicAccessPolicy(awsS3Client, s3BucketName, accessType);
         if (!checkPolicy.isEmpty()) {
             checkPolicyMap.putAll(checkPolicy);

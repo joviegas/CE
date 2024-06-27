@@ -31,9 +31,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AttachedPolicy;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -52,11 +51,11 @@ public class IAMUserWithFullAdminPrevilegeRuleTest {
 	IAMUserWithFullAdminPrevilegeRule iamUserWithFullAdminPrevilegeRule;
 
 	@Mock
-	AmazonIdentityManagementClient amazonIdentityManagementClient;
+	IdentityManagementClient amazonIdentityManagementClient;
 
 	@Before
 	public void setUp() throws Exception {
-		amazonIdentityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class);
+		amazonIdentityManagementClient = PowerMockito.mock(IdentityManagementClient.class);
 	}
 
 	@Test
@@ -232,13 +231,13 @@ public class IAMUserWithFullAdminPrevilegeRuleTest {
 	}
 
 	private List<AttachedPolicy> mockAttachedUserPolicies() {
-		AttachedPolicy policy = new AttachedPolicy();
-		policy.setPolicyArn("arn:aws:iam::123456789:policy/test_ful_admin_policy");
-		policy.setPolicyName("test_ful_admin_policy");
+		AttachedPolicy policy = AttachedPolicy.builder().build();
+		policy.policyArn("arn:aws:iam::123456789:policy/test_ful_admin_policy");
+		policy.policyName("test_ful_admin_policy");
 		
-		AttachedPolicy policy1 = new AttachedPolicy();
-		policy1.setPolicyArn("arn:aws:iam::123456789:policy/test_policy");
-		policy1.setPolicyName("test_policy");
+		AttachedPolicy policy1 = AttachedPolicy.builder().build();
+		policy1.policyArn("arn:aws:iam::123456789:policy/test_policy");
+		policy1.policyName("test_policy");
 		return Arrays.asList(policy,policy1);
 	}
 	

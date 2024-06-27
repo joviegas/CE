@@ -31,9 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.cloudtrail.AWSCloudTrailClient;
-import com.amazonaws.services.cloudtrail.model.DescribeTrailsResult;
-import com.amazonaws.services.cloudtrail.model.Trail;
+import software.amazon.awssdk.services.cloudtrail.CloudTrailClient;
+import software.amazon.awssdk.services.cloudtrail.model.DescribeTrailsResponse;
+import software.amazon.awssdk.services.cloudtrail.model.Trail;
+
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.AWSService;
@@ -82,7 +83,7 @@ public class CheckAWSCloudTrailConfig extends BasePolicy {
             Map<String, String> resourceAttributes) {
         logger.debug("========CheckAWSCloudTrailConfig started=========");
         Map<String, Object> map = null;
-        AWSCloudTrailClient cloudTrailClient = null;
+        CloudTrailClient cloudTrailClient = null;
         Annotation annotation = null;
         String cloudtrailFlg = null;
         String roleIdentifyingString = ruleParam
@@ -105,7 +106,7 @@ public class CheckAWSCloudTrailConfig extends BasePolicy {
         try {
             map = getClientFor(AWSService.CLOUDTRL, roleIdentifyingString,
                     ruleParam);
-            cloudTrailClient = (AWSCloudTrailClient) map
+            cloudTrailClient = (CloudTrailClient) map
                     .get(PacmanSdkConstants.CLIENT);
 
         } catch (UnableToCreateClientException e) {
@@ -113,12 +114,12 @@ public class CheckAWSCloudTrailConfig extends BasePolicy {
             throw new InvalidInputException(e.toString());
         }
 
-        DescribeTrailsResult result = cloudTrailClient.describeTrails();
-        List<Trail> trailList = result.getTrailList();
+        DescribeTrailsResponse result = cloudTrailClient.describeTrails();
+        List<Trail> trailList = result.trailList();
 
         for (Trail trail : trailList) {
 
-            if (trail.getIsMultiRegionTrail()) {
+            if (trail.isMultiRegionTrail()) {
                 cloudtrailFlg = "X";// set flag when CloudTrail is enabled all
                                     // regions
                 break;

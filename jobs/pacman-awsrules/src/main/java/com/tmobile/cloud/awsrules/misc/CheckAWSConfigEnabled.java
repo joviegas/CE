@@ -29,9 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.config.AmazonConfigClient;
-import com.amazonaws.services.config.model.ConfigurationRecorder;
-import com.amazonaws.services.config.model.DescribeConfigurationRecordersResult;
+import software.amazon.awssdk.services.config.ConfigClient;
+import software.amazon.awssdk.services.config.model.ConfigurationRecorder;
+import software.amazon.awssdk.services.config.model.DescribeConfigurationRecordersResponse;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -72,7 +72,7 @@ public class CheckAWSConfigEnabled extends BasePolicy {
 
 		logger.debug("========CheckAWSConfigEnabled started=========");
 		Map<String, Object> map = null;
-		AmazonConfigClient awsConfigClient = null;
+		ConfigClient awsConfigClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String severity = ruleParam.get(PacmanRuleConstants.SEVERITY);
 		String category = ruleParam.get(PacmanRuleConstants.CATEGORY);
@@ -98,10 +98,10 @@ public class CheckAWSConfigEnabled extends BasePolicy {
 		Annotation annotation = null;
 		try {
 			map = getClientFor(AWSService.CONFIG, roleIdentifyingString,localRuleParam);
-			awsConfigClient = (AmazonConfigClient) map.get(PacmanSdkConstants.CLIENT);
+			awsConfigClient = (ConfigClient) map.get(PacmanSdkConstants.CLIENT);
 			// Check AWS Config Enabled
-            DescribeConfigurationRecordersResult describeConfigurationRecordersResult = awsConfigClient.describeConfigurationRecorders();
-            List<ConfigurationRecorder> configurationRecorders = describeConfigurationRecordersResult.getConfigurationRecorders();
+            DescribeConfigurationRecordersResponse describeConfigurationRecordersResult = awsConfigClient.describeConfigurationRecorders();
+            List<ConfigurationRecorder> configurationRecorders = describeConfigurationRecordersResult.configurationRecorders();
             if (CollectionUtils.isNullOrEmpty(configurationRecorders)) {
                 // Create an annotation if config is not enabled
                 annotation = Annotation.buildAnnotation(ruleParam, Annotation.Type.ISSUE);

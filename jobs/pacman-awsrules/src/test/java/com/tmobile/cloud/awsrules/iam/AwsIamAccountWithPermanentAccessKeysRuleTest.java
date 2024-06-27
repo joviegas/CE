@@ -42,15 +42,16 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
-import com.amazonaws.services.identitymanagement.model.ListAccessKeysResult;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AccessKeyMetadata;
+import software.amazon.awssdk.services.identitymanagement.model.ListAccessKeysResponse;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,IAMUtils.class, Annotation.class})
@@ -61,28 +62,28 @@ public class AwsIamAccountWithPermanentAccessKeysRuleTest {
     
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
 
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
-        AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata();
-        accessKeyMetadata.setAccessKeyId("123");
+        AccessKeyMetadata accessKeyMetadata = AccessKeyMetadata.builder().build();
+        accessKeyMetadata.accessKeyId("123");
        
         List<AccessKeyMetadata> accessKeyMetadatas  = new ArrayList<>();
         accessKeyMetadatas.add(accessKeyMetadata);
         
-        ListAccessKeysResult keysResult  = new ListAccessKeysResult();
-        keysResult.setAccessKeyMetadata(accessKeyMetadatas);
+        ListAccessKeysResponse keysResult  = ListAccessKeysResponse.builder().build();
+        keysResult.accessKeyMetadata(accessKeyMetadatas);
         
         
 
         
         List<AccessKeyMetadata> emptyAccessKeyMetadatas  = new ArrayList<>();
-        ListAccessKeysResult emptyKeysResult  = new ListAccessKeysResult();
+        ListAccessKeysResponse emptyKeysResult  = ListAccessKeysResponse.builder().build();
         
         mockStatic(PacmanUtils.class);
         when(PacmanUtils.doesAllHaveValue(anyString(),anyString(),anyString())).thenReturn(

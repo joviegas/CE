@@ -44,18 +44,19 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
-import com.amazonaws.services.identitymanagement.model.GetPolicyResult;
-import com.amazonaws.services.identitymanagement.model.GetPolicyVersionResult;
-import com.amazonaws.services.identitymanagement.model.ListAttachedRolePoliciesResult;
-import com.amazonaws.services.identitymanagement.model.Policy;
-import com.amazonaws.services.identitymanagement.model.PolicyVersion;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AttachedPolicy;
+import software.amazon.awssdk.services.identitymanagement.model.GetPolicyResponse;
+import software.amazon.awssdk.services.identitymanagement.model.GetPolicyVersionResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListAttachedRolePoliciesResponse;
+import software.amazon.awssdk.services.identitymanagement.model.Policy;
+import software.amazon.awssdk.services.identitymanagement.model.PolicyVersion;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({URLDecoder.class, PacmanUtils.class,IAMUtils.class, Annotation.class})
@@ -66,74 +67,74 @@ public class IAMAccessGrantForNonAdminAccountRuleTest {
     
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
 
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
-        AttachedPolicy attachedPolicies = new AttachedPolicy();
-        attachedPolicies.setPolicyName("IAMFullAccess");
+        AttachedPolicy attachedPolicies = AttachedPolicy.builder().build();
+        attachedPolicies.policyName("IAMFullAccess");
         List<AttachedPolicy> policies = new ArrayList<>();
         policies.add(attachedPolicies);
-        ListAttachedRolePoliciesResult result  = new ListAttachedRolePoliciesResult();
-        result.setAttachedPolicies(policies);
-        result.setIsTruncated(false);
+        ListAttachedRolePoliciesResponse result  = ListAttachedRolePoliciesResponse.builder().build();
+        result.attachedPolicies(policies);
+        result.isTruncated(false);
         
         
-        AttachedPolicy attachedPolicies1 = new AttachedPolicy();
-        attachedPolicies1.setPolicyName("AdministratorAccess");
+        AttachedPolicy attachedPolicies1 = AttachedPolicy.builder().build();
+        attachedPolicies1.policyName("AdministratorAccess");
         List<AttachedPolicy> policies1 = new ArrayList<>();
         policies1.add(attachedPolicies1);
-        ListAttachedRolePoliciesResult result1  = new ListAttachedRolePoliciesResult();
-        result1.setAttachedPolicies(policies1);
-        result1.setIsTruncated(false);
+        ListAttachedRolePoliciesResponse result1  = ListAttachedRolePoliciesResponse.builder().build();
+        result1.attachedPolicies(policies1);
+        result1.isTruncated(false);
         
-        AttachedPolicy attachedPolicies2 = new AttachedPolicy();
-        attachedPolicies2.setPolicyArn("123");
+        AttachedPolicy attachedPolicies2 = AttachedPolicy.builder().build();
+        attachedPolicies2.policyArn("123");
         List<AttachedPolicy> policies2 = new ArrayList<>();
         policies2.add(attachedPolicies2);
-        ListAttachedRolePoliciesResult result2  = new ListAttachedRolePoliciesResult();
-        result2.setAttachedPolicies(policies2);
-        result2.setIsTruncated(false);
+        ListAttachedRolePoliciesResponse result2  = ListAttachedRolePoliciesResponse.builder().build();
+        result2.attachedPolicies(policies2);
+        result2.isTruncated(false);
         
         
         List<AttachedPolicy> policies3 = new ArrayList<>();
-        ListAttachedRolePoliciesResult result3  = new ListAttachedRolePoliciesResult();
-        result3.setAttachedPolicies(policies3);
-        result3.setIsTruncated(false);
+        ListAttachedRolePoliciesResponse result3  = ListAttachedRolePoliciesResponse.builder().build();
+        result3.attachedPolicies(policies3);
+        result3.isTruncated(false);
         
-        Policy policy = new Policy();
-        policy.setPolicyId("policyId");
-        
-        
-        
-        GetPolicyResult policyResult = new GetPolicyResult();
-        policyResult.setPolicy(policy);
+        Policy policy = Policy.builder().build();
+        policy.policyId("policyId");
         
         
-        PolicyVersion policyVersion = new PolicyVersion();
-        policyVersion.setVersionId("versionId");
-        policyVersion.setIsDefaultVersion(true);
-        policyVersion.setDocument("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
         
-        GetPolicyVersionResult versionResult = new GetPolicyVersionResult();
-        versionResult.setPolicyVersion(policyVersion);
+        GetPolicyResponse policyResult = GetPolicyResponse.builder().build();
+        policyResult.policy(policy);
         
         
-        GetPolicyResult policyResult1 = new GetPolicyResult();
-        policyResult1.setPolicy(policy);
+        PolicyVersion policyVersion = PolicyVersion.builder().build();
+        policyVersion.versionId("versionId");
+        policyVersion.isDefaultVersion(true);
+        policyVersion.document("{\"ag\":\"aws-all\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"]}],\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        
+        GetPolicyVersionResponse versionResult = GetPolicyVersionResponse.builder().build();
+        versionResult.policyVersion(policyVersion);
         
         
-        PolicyVersion policyVersion1 = new PolicyVersion();
-        policyVersion1.setVersionId("versionId");
-        policyVersion1.setIsDefaultVersion(true);
-        policyVersion1.setDocument("{\"ag\":\"aws-all\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"]},\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        GetPolicyResponse policyResult1 = GetPolicyResponse.builder().build();
+        policyResult1.policy(policy);
         
-        GetPolicyVersionResult versionResult1 = new GetPolicyVersionResult();
-        versionResult1.setPolicyVersion(policyVersion1);
+        
+        PolicyVersion policyVersion1 = PolicyVersion.builder().build();
+        policyVersion1.versionId("versionId");
+        policyVersion1.isDefaultVersion(true);
+        policyVersion1.document("{\"ag\":\"aws-all\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":[\"iam:*\"]},\"from\":0,\"searchtext\":\"\",\"size\":25}");
+        
+        GetPolicyVersionResponse versionResult1 = GetPolicyVersionResponse.builder().build();
+        versionResult1.policyVersion(policyVersion1);
         
         mockStatic(PacmanUtils.class);
         when(PacmanUtils.doesAllHaveValue(anyString(),anyString(),anyString())).thenReturn(

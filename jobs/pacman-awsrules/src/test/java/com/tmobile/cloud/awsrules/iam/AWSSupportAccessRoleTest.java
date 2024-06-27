@@ -27,8 +27,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -47,11 +47,11 @@ public class AWSSupportAccessRoleTest {
 	AWSSupportAccessRole awsSupportAccessRole;
 
 	@Mock
-	AmazonIdentityManagementClient amazonIdentityManagementClient;
+	IdentityManagementClient amazonIdentityManagementClient;
 
 	@Before
 	public void setUp() throws Exception {
-		amazonIdentityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class);
+		amazonIdentityManagementClient = PowerMockito.mock(IdentityManagementClient.class);
 	}
 
 	@Test

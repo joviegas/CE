@@ -57,8 +57,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.tmobile.pacman.commons.policy.Annotation;
 
 @RunWith(PowerMockRunner.class)
@@ -71,7 +71,7 @@ public class PacmanUtilsTest {
     
     
     @Mock
-    AmazonEC2 ec2ServiceClient;
+    Ec2Client ec2ServiceClient;
     
     @Mock
     DefaultArtifactVersion minVersion;
@@ -88,7 +88,7 @@ public class PacmanUtilsTest {
     
     @Before
     public void setUp() throws Exception{
-        ec2ServiceClient = PowerMockito.mock(AmazonEC2.class); 
+        ec2ServiceClient = PowerMockito.mock(Ec2Client.class); 
         minVersion = PowerMockito.mock(DefaultArtifactVersion.class); 
         url = PowerMockito.mock(URL.class); 
         config = PowerMockito.mock(XmlRpcClientConfigImpl.class); 

@@ -39,16 +39,16 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetAccountPasswordPolicyResult;
-import com.amazonaws.services.identitymanagement.model.PasswordPolicy;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountPasswordPolicyResponse;
+import software.amazon.awssdk.services.identitymanagement.model.PasswordPolicy;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,IAMUtils.class, Annotation.class})
@@ -59,23 +59,23 @@ public class CheckIamPasswordPolicyRuleTest {
     
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
 
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
-        PasswordPolicy passwordPolicy = new PasswordPolicy();
-        passwordPolicy.setAllowUsersToChangePassword(true);
-        GetAccountPasswordPolicyResult result  = new GetAccountPasswordPolicyResult();
-        result.setPasswordPolicy(passwordPolicy);
+        PasswordPolicy passwordPolicy = PasswordPolicy.builder().build();
+        passwordPolicy.allowUsersToChangePassword(true);
+        GetAccountPasswordPolicyResponse result  = GetAccountPasswordPolicyResponse.builder().build();
+        result.passwordPolicy(passwordPolicy);
         
         
 
         
-        GetAccountPasswordPolicyResult emptyKeysResult  = new GetAccountPasswordPolicyResult();
+        GetAccountPasswordPolicyResponse emptyKeysResult  = GetAccountPasswordPolicyResponse.builder().build();
         
         mockStatic(PacmanUtils.class);
         when(PacmanUtils.doesAllHaveValue(anyString(),anyString())).thenReturn(

@@ -27,13 +27,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketVersioningConfiguration;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -44,18 +46,18 @@ public class CheckMFADeleteEnabledRuleTest {
     
     
     @Mock
-    AmazonS3Client awsS3Client;
+    S3Client awsS3Client;
 
     @Before
     public void setUp() throws Exception{
-        awsS3Client = PowerMockito.mock(AmazonS3Client.class); 
+        awsS3Client = PowerMockito.mock(S3Client.class); 
     }
     @Test
     public void test()throws Exception{
         Collection<String> li = new ArrayList<>();
         li.add("123");
-        BucketVersioningConfiguration configuration = new BucketVersioningConfiguration();
-        configuration.setMfaDeleteEnabled(false);
+        BucketVersioningConfiguration configuration = BucketVersioningConfiguration.builder().build();
+        configuration.mfaDeleteEnabled(false);
         
         mockStatic(PacmanUtils.class);
         when(PacmanUtils.doesAllHaveValue(anyString(),anyString())).thenReturn(
@@ -71,8 +73,8 @@ public class CheckMFADeleteEnabledRuleTest {
         when(awsS3Client.getBucketVersioningConfiguration(anyString())).thenReturn(configuration);
         spy.execute(CommonTestUtils.getMapString("r_123 "),CommonTestUtils.getMapString("r_123 "));
         
-        BucketVersioningConfiguration configurationEnabled = new BucketVersioningConfiguration();
-        configurationEnabled.setMfaDeleteEnabled(true);
+        BucketVersioningConfiguration configurationEnabled = BucketVersioningConfiguration.builder().build();
+        configurationEnabled.mfaDeleteEnabled(true);
         when(awsS3Client.getBucketVersioningConfiguration(anyString())).thenReturn(configurationEnabled);
         spy.execute(CommonTestUtils.getMapString("r_123 "),CommonTestUtils.getMapString("r_123 "));
         

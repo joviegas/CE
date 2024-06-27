@@ -11,8 +11,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
@@ -110,7 +109,7 @@ public class AWSSupportAccessRole extends BasePolicy {
 	private String checkValidation(Map<String, String> ruleParam, Map<String, String> resourceAttributes) {
 
 		Map<String, Object> map = null;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 		String description = "Dedicated IAM role for AWS Support Access should be created and attached to user or group!!";
 
@@ -124,7 +123,7 @@ public class AWSSupportAccessRole extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 			
 			String policyArn = IAMUtils.getAwsManagedPolicyArnByName(policyName, iamClient);
 			

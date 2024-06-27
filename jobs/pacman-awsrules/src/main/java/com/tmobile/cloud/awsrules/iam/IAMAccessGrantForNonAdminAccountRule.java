@@ -35,8 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 import com.amazonaws.util.CollectionUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -95,7 +94,7 @@ public class IAMAccessGrantForNonAdminAccountRule extends BasePolicy {
         ruleParamforIAM.put("region", "us-west-2");
 
         Map<String, Object> map = null;
-        AmazonIdentityManagementClient iamClient = null;
+        IdentityManagementClient iamClient = null;
         String roleIdentifyingString = ruleParamforIAM
                 .get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
         String roleName = resourceAttributes.get(PacmanRuleConstants.ROLE_NAME);
@@ -133,7 +132,7 @@ public class IAMAccessGrantForNonAdminAccountRule extends BasePolicy {
         try {
             map = getClientFor(AWSService.IAM, roleIdentifyingString,
                     ruleParamforIAM);
-            iamClient = (AmazonIdentityManagementClient) map
+            iamClient = (IdentityManagementClient) map
                     .get(PacmanSdkConstants.CLIENT);
         } catch (Exception e) {
             logger.error("unable to get client for following input", e);
@@ -220,7 +219,7 @@ public class IAMAccessGrantForNonAdminAccountRule extends BasePolicy {
      * @return
      */
     private boolean isIAMFullAccessFoundAfterThoroughCheck(
-            AmazonIdentityManagementClient iamClient,
+            IdentityManagementClient iamClient,
             List<AttachedPolicy> attachedRolePolicies) throws AmazonIdentityManagementException, InterruptedException {
         boolean isIAMFullAccess = false;
         for (AttachedPolicy policy : attachedRolePolicies) {

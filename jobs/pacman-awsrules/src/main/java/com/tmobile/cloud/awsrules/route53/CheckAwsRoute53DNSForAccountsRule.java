@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.route53.AmazonRoute53Client;
-import com.amazonaws.services.route53.model.ListHostedZonesResult;
+import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesResponse;
 import com.google.gson.Gson;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -74,7 +74,7 @@ public class CheckAwsRoute53DNSForAccountsRule extends BasePolicy {
 		temp.put("region", "us-west-2");
 		Map<String, Object> map = null;
 		Annotation annotation = null;
-		AmazonRoute53Client route53Client = null;
+		Route53Client route53Client = null;
 
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String accountName = resourceAttributes.get(PacmanSdkConstants.ACCOUNT_NAME);
@@ -108,9 +108,9 @@ public class CheckAwsRoute53DNSForAccountsRule extends BasePolicy {
 
 				try {
 					map = getClientFor(AWSService.ROUTE53, roleIdentifyingString, temp);
-					route53Client = (AmazonRoute53Client) map.get(PacmanSdkConstants.CLIENT);
-					ListHostedZonesResult result = route53Client.listHostedZones();
-                    if (!result.getHostedZones().isEmpty()) {
+					route53Client = (Route53Client) map.get(PacmanSdkConstants.CLIENT);
+					ListHostedZonesResponse result = route53Client.listHostedZones();
+                    if (!result.hostedZones().isEmpty()) {
                         failedType.put("hostedZones", "Found");
                         annotation = Annotation.buildAnnotation(ruleParam,Annotation.Type.ISSUE);
                         annotation.put(PacmanSdkConstants.DESCRIPTION,"AWS route53 DNS for "+accountName+" account has found!!");

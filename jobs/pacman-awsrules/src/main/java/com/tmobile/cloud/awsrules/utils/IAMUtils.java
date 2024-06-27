@@ -30,8 +30,7 @@ import com.amazonaws.auth.policy.Action;
 import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.Statement.Effect;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
@@ -54,7 +53,7 @@ public class IAMUtils {
      * @return list of access key meta data
      */
     public static List<AccessKeyMetadata> getAccessKeyInformationForUser(
-            final String userName, AmazonIdentityManagementClient iamClient) {
+            final String userName, IdentityManagementClient iamClient) {
         ListAccessKeysRequest accessKeysRequest = new ListAccessKeysRequest();
         accessKeysRequest.setUserName(userName);
         logger.debug("userName {} ",userName);
@@ -98,7 +97,7 @@ public class IAMUtils {
 	 * @param iamClient
 	 * @return Set of actions
 	 */
-	public static Set<String> getAllowedActionsByUserPolicy(AmazonIdentityManagementClient iamClient, String userName) {
+	public static Set<String> getAllowedActionsByUserPolicy(IdentityManagementClient iamClient, String userName) {
 		Set<String> actionSet = new HashSet<>();
 		actionSet.addAll(getAttachedUserPolicyActionSet(userName, iamClient));
 		actionSet.addAll(getInlineUserPolicyActionSet(userName, iamClient));
@@ -117,7 +116,7 @@ public class IAMUtils {
 	 * @return the attached policy
 	 */
 	private static Set<String> getAttachedUserPolicyActionSet(String userName,
-			AmazonIdentityManagementClient iamClient) {
+			IdentityManagementClient iamClient) {
 		Set<String> actionSet = new HashSet<>();
 		String docVersion = null;
 		List<AttachedPolicy> attachedPolicies = getAttachedPolicyOfIAMUser(userName, iamClient);
@@ -177,7 +176,7 @@ public class IAMUtils {
 	 * @return the inline user policy
 	 */
 	private static Set<String> getInlineUserPolicyActionSet(String userName,
-			AmazonIdentityManagementClient amazonIdentityManagement) {
+			IdentityManagementClient amazonIdentityManagement) {
 		Set<String> actionSet = new HashSet<>();
 
 		List<String> inlineUserPolicyNameList = new ArrayList<>();
@@ -209,7 +208,7 @@ public class IAMUtils {
 	 * @return the inline user policy
 	 */
 	private static Policy getInlineUserPolicy(String userName, String policyName,
-			AmazonIdentityManagement amazonIdentityManagement) {
+			IdentityManagementClient amazonIdentityManagement) {
 		Policy policy = new Policy();
 		try {
 			GetUserPolicyRequest policyRequest = new GetUserPolicyRequest();
@@ -235,7 +234,7 @@ public class IAMUtils {
 	 * @return list of AttachedPolicy
 	 */
 	public static List<AttachedPolicy> getAttachedPolicyOfIAMUser(String userName,
-			AmazonIdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
+			IdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
 		ListAttachedUserPoliciesRequest attachedUserPoliciesRequest = new ListAttachedUserPoliciesRequest();
 		attachedUserPoliciesRequest.setUserName(userName);
 		ListAttachedUserPoliciesResult userPoliciesResult = iamClient
@@ -251,7 +250,7 @@ public class IAMUtils {
 	 * @param iamClient
 	 * @return Set of actions
 	 */
-	public static Set<String> getAllowedActionsByRolePolicy(AmazonIdentityManagementClient iamClient, String roleName) throws Exception {
+	public static Set<String> getAllowedActionsByRolePolicy(IdentityManagementClient iamClient, String roleName) throws Exception {
 		Set<String> actionSet = new HashSet<>();
 		actionSet.addAll(getAttachedRolePolicyActionSet(roleName, iamClient));
 		actionSet.addAll(getInlineRolePolicyActionSet(roleName, iamClient));
@@ -271,7 +270,7 @@ public class IAMUtils {
 	 * @return the attached policy
 	 */
 	private static Set<String> getAttachedRolePolicyActionSet(String roleName,
-			AmazonIdentityManagementClient iamClient) throws AmazonIdentityManagementException, InterruptedException {
+			IdentityManagementClient iamClient) throws AmazonIdentityManagementException, InterruptedException {
 		Set<String> actionSet = new HashSet<>();
 		String docVersion = null;
 		List<AttachedPolicy> attachedPolicies = getAttachedPolicyOfIAMRole(roleName, iamClient);
@@ -355,7 +354,7 @@ public class IAMUtils {
 	 * @return the inline role policy
 	 */
 	private static Set<String> getInlineRolePolicyActionSet(String roleName,
-			AmazonIdentityManagementClient amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
+			IdentityManagementClient amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
 		Set<String> actionSet = new HashSet<>();
 
 		List<String> inlineRolePolicyNameList = new ArrayList<>();
@@ -401,7 +400,7 @@ public class IAMUtils {
 	 * @return list of AttachedPolicy
 	 */
 	public static List<AttachedPolicy> getAttachedPolicyOfIAMRole(final String roleName,
-			AmazonIdentityManagementClient iamClient) throws AmazonIdentityManagementException, InterruptedException {
+			IdentityManagementClient iamClient) throws AmazonIdentityManagementException, InterruptedException {
 		ListAttachedRolePoliciesRequest attachedUserPoliciesRequest = new ListAttachedRolePoliciesRequest();
 		attachedUserPoliciesRequest.setRoleName(roleName);
 		for(int i=0;i<PacmanSdkConstants.MAX_RETRY_COUNT;i++) {
@@ -438,7 +437,7 @@ public class IAMUtils {
 	 * @return the inline role policy
 	 */
 	private static Policy getInlineRolePolicy(String roleName, String policyName,
-			AmazonIdentityManagement amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
+			IdentityManagementClient amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
 		Policy policy = new Policy();
 		for(int i=0;i<PacmanSdkConstants.MAX_RETRY_COUNT;i++){
 			try {
@@ -477,7 +476,7 @@ public class IAMUtils {
 	 * 
 	 */
 	public static boolean isInlineUserPolicyWithFullAdminAccess(String userName,
-			AmazonIdentityManagementClient amazonIdentityManagement) {
+			IdentityManagementClient amazonIdentityManagement) {
 
 		List<String> inlineUserPolicyNameList = new ArrayList<>();
 		ListUserPoliciesRequest listUserPoliciesRequest = new ListUserPoliciesRequest();
@@ -507,7 +506,7 @@ public class IAMUtils {
      * 
      */
     public static boolean isInlineGroupPolicyWithFullAdminAccess(String groupName,
-			AmazonIdentityManagementClient amazonIdentityManagement) {
+			IdentityManagementClient amazonIdentityManagement) {
 
 		List<String> inlineGroupPolicyNameList = new ArrayList<>();
 		ListGroupPoliciesRequest listGroupPoliciesRequest = new ListGroupPoliciesRequest();
@@ -538,7 +537,7 @@ public class IAMUtils {
      * 
      */
     private static Policy getInlineGroupPolicy(String groupName, String policyName,
-			AmazonIdentityManagement amazonIdentityManagement) {
+			IdentityManagementClient amazonIdentityManagement) {
 		Policy policy = new Policy();
 		try {
 			GetGroupPolicyRequest policyRequest = new GetGroupPolicyRequest();
@@ -563,7 +562,7 @@ public class IAMUtils {
 	 * @param iamClient
 	 * @return
 	 */
-	public static boolean isPolicyWithFullAdminAccess(String policyArn, AmazonIdentityManagementClient iamClient) throws AmazonIdentityManagementException,InterruptedException {
+	public static boolean isPolicyWithFullAdminAccess(String policyArn, IdentityManagementClient iamClient) throws AmazonIdentityManagementException,InterruptedException {
 		List<PolicyVersion> policyVersions = new ArrayList<>();
 		for(int i=0;i<PacmanSdkConstants.MAX_RETRY_COUNT;i++) {
 			try {
@@ -673,7 +672,7 @@ public class IAMUtils {
 	 * 
 	 */
 	public static boolean isInlineRolePolicyWithFullAdminAccess(String roleName,
-			AmazonIdentityManagementClient amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
+			IdentityManagementClient amazonIdentityManagement) throws AmazonIdentityManagementException, InterruptedException, UnsupportedEncodingException {
 
 		List<String> inlineRolePolicyNameList = new ArrayList<>();
 		ListRolePoliciesRequest listRolePoliciesRequest = new ListRolePoliciesRequest();
@@ -721,7 +720,7 @@ public class IAMUtils {
 	 * 
 	 */
 	public static Set<String> getSupportRoleByPolicyArn(String arn,
-			AmazonIdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
+			IdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
 
 		ListEntitiesForPolicyRequest request = new ListEntitiesForPolicyRequest();
 		ListEntitiesForPolicyResult respone = null;
@@ -746,7 +745,7 @@ public class IAMUtils {
 	 * 
 	 */
 	public static String getAwsManagedPolicyArnByName(String policyName,
-			AmazonIdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
+			IdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
 
 		List<String> arn = null;
 		ListPoliciesRequest request = new ListPoliciesRequest();
@@ -775,7 +774,7 @@ public class IAMUtils {
 	 * 
 	 */
 	public static boolean isSupportRoleAssumedByUserOrGroup(Set<String> policies,
-			AmazonIdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
+			IdentityManagementClient iamClient) throws RuleExecutionFailedExeption {
 
 		String docVersion = null;
 		for (String policyDoc : policies) {
@@ -808,7 +807,7 @@ public class IAMUtils {
 		return false;
 	}
 
-	public static boolean isUserHasInvalidPermission(String userName, AmazonIdentityManagementClient iamClient) {
+	public static boolean isUserHasInvalidPermission(String userName, IdentityManagementClient iamClient) {
 		ListUserPoliciesResult listUserPoliciesResult = new ListUserPoliciesResult();
 		ListUserPoliciesRequest listUserPoliciesRequest = new ListUserPoliciesRequest();
 

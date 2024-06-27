@@ -33,8 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 
-import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.PacmanSdkConstants;
@@ -84,7 +84,7 @@ public class CheckForSecurityGroupWithAnywhereAccess extends BasePolicy {
         logger.debug("========CheckForSecurityGroupWithAnywhereAccess started=========");
         Annotation annotation = null;
         Set<GroupIdentifier> securityGroupsSet = new HashSet<>();
-        GroupIdentifier groupIdentifier = new GroupIdentifier();
+        GroupIdentifier groupIdentifier = GroupIdentifier.builder().build();
         List<GroupIdentifier> list = new ArrayList<>();
         String securityGroupId = ruleParam.get(PacmanSdkConstants.RESOURCE_ID);
         String portToCheck = ruleParam.get(PacmanRuleConstants.PORT_TO_CHECK);
@@ -113,7 +113,7 @@ public class CheckForSecurityGroupWithAnywhereAccess extends BasePolicy {
         }
 
         if (!StringUtils.isEmpty(securityGroupId)) {
-            groupIdentifier.setGroupId(securityGroupId);
+            groupIdentifier.groupId(securityGroupId);
             list.add(groupIdentifier);
             securityGroupsSet.addAll(list);
 

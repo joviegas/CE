@@ -1,6 +1,5 @@
 package com.tmobile.cloud.awsrules.ActitvityLog;
 
-import com.amazonaws.services.identitymanagement.model.InvalidInputException;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.azurerules.ActivityLog.ActivityLogRule;
 
@@ -9,6 +8,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import software.amazon.awssdk.services.identitymanagement.model.InvalidInputException;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

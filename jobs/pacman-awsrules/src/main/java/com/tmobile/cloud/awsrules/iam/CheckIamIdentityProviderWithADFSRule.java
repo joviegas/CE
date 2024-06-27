@@ -28,9 +28,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetSAMLProviderRequest;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetSamlProviderRequest;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.AWSService;
@@ -104,15 +103,15 @@ public class CheckIamIdentityProviderWithADFSRule extends BasePolicy {
                     PacmanRuleConstants.MISSING_CONFIGURATION);
         }
         Map<String, Object> map = null;
-        AmazonIdentityManagementClient identityManagementClient = null;
+        IdentityManagementClient identityManagementClient = null;
 
         try {
             map = getClientFor(AWSService.IAM, roleIdentifyingString, temp);
-            identityManagementClient = (AmazonIdentityManagementClient) map
+            identityManagementClient = (IdentityManagementClient) map
                     .get(PacmanSdkConstants.CLIENT);
 
-            GetSAMLProviderRequest request = new GetSAMLProviderRequest();
-            request.setSAMLProviderArn("arn:aws:iam::" + accountId
+            GetSamlProviderRequest request = GetSamlProviderRequest.builder().build();
+            request.samlProviderArn("arn:aws:iam::" + accountId
                     + ":saml-provider/ADFS");
              identityManagementClient
                     .getSAMLProvider(request);

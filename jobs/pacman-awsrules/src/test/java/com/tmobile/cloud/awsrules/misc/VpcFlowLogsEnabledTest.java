@@ -41,14 +41,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.FlowLog;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.FlowLog;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanEc2Utils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class,PacmanEc2Utils.class, Annotation.class})
@@ -59,16 +59,16 @@ public class VpcFlowLogsEnabledTest {
     
     
     @Mock
-    AmazonEC2 ec2Client;
+    Ec2Client ec2Client;
 
     @Before
     public void setUp() throws Exception{
-        ec2Client = PowerMockito.mock(AmazonEC2.class); 
+        ec2Client = PowerMockito.mock(Ec2Client.class); 
     }
     @Test
     public void test()throws Exception{
-        FlowLog flow = new FlowLog();
-        flow.setResourceId("123");
+        FlowLog flow = FlowLog.builder().build();
+        flow.resourceId("123");
         List<FlowLog> flowLogs = new ArrayList<>();
         flowLogs.add(flow);
         

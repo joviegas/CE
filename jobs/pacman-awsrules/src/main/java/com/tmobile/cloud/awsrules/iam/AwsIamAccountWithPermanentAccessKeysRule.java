@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AccessKeyMetadata;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -82,7 +82,7 @@ public class AwsIamAccountWithPermanentAccessKeysRule extends BasePolicy {
 
         Map<String, Object> map = null;
         Annotation annotation = null;
-        AmazonIdentityManagementClient identityManagementClient = null;
+        IdentityManagementClient identityManagementClient = null;
 
         String roleIdentifyingString = ruleParam
                 .get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
@@ -107,7 +107,7 @@ public class AwsIamAccountWithPermanentAccessKeysRule extends BasePolicy {
         try {
             map = getClientFor(AWSService.IAM, roleIdentifyingString,
                     ruleParamIam);
-            identityManagementClient = (AmazonIdentityManagementClient) map
+            identityManagementClient = (IdentityManagementClient) map
                     .get(PacmanSdkConstants.CLIENT);
             logger.debug("No AWS IAM accounts except service accounts should have permanent access keys rule starts");
 
@@ -166,8 +166,8 @@ public class AwsIamAccountWithPermanentAccessKeysRule extends BasePolicy {
             List<AccessKeyMetadata> accessKeyMetadatas, String userId) {
         Map<String, String> accessMap = new HashMap<>();
         for (AccessKeyMetadata keyMetadata : accessKeyMetadatas) {
-            if (keyMetadata.getAccessKeyId() != null) {
-                accessMap.put(keyMetadata.getAccessKeyId(), userId);
+            if (keyMetadata.accessKeyId() != null) {
+                accessMap.put(keyMetadata.accessKeyId(), userId);
             }
         }
         return accessMap;

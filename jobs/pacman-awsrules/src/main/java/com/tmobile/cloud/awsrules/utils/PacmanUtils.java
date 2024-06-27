@@ -43,7 +43,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import com.amazonaws.auth.BasicSessionCredentials;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cloud.model.CveDetails;
@@ -75,15 +74,15 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.elasticloadbalancingv2.model.Listener;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.BucketPolicy;
-import com.amazonaws.services.s3.model.Grant;
-import com.amazonaws.services.s3.model.Permission;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.Listener;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AccessControlList;
+import software.amazon.awssdk.services.s3.model.S3ExceptionClient;
+import software.amazon.awssdk.services.s3.model.BucketPolicy;
+import software.amazon.awssdk.services.s3.model.Grant;
+import software.amazon.awssdk.services.s3.model.Permission;
 import com.amazonaws.util.CollectionUtils;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -593,15 +592,15 @@ public class PacmanUtils {
         return volList;
     }
 
-    public static Map<String, Boolean> getPolicyPublicAccess(AmazonS3Client awsS3Client, String s3BucketName,
+    public static Map<String, Boolean> getPolicyPublicAccess(S3Client awsS3Client, String s3BucketName,
             String accessType) {
         Map<String, Boolean> map = new HashMap<>();
         JsonParser jsonParser = new JsonParser();
         BucketPolicy bucketPolicy = awsS3Client.getBucketPolicy(s3BucketName);
 
         JsonArray jsonArray = new JsonArray();
-        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.getPolicyText())) {
-            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.getPolicyText());
+        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.policyText())) {
+            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.policyText());
             jsonArray = resultJson.get("Statement").getAsJsonArray();
         }
         String action = null;
@@ -1626,7 +1625,7 @@ public class PacmanUtils {
 				Map<String, Object> mustNotFilter = new HashMap<>();
 				HashMultimap<String, Object> shouldFilter = HashMultimap.create();
 				Map<String, Object> mustTermsFilter = new HashMap<>();
-				mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.getGroupId());
+				mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.groupId());
 				mustFilter.put(convertAttributetoKeyword(PacmanSdkConstants.TYPE), PacmanRuleConstants.INBOUND);
 				mustNotFilter.put(convertAttributetoKeyword(PacmanRuleConstants.ES_SG_IP_PROTOCOL_ATTRIBUTE), PacmanRuleConstants.PROTOCOL_ICMP);
 				resultJsonSecGrpRules = RulesElasticSearchRepositoryUtil.getQueryDetailsFromES(sgRulesUrl, mustFilter,
@@ -1654,7 +1653,7 @@ public class PacmanUtils {
 				Map<String, Object> mustNotFilter = new HashMap<>();
 				HashMultimap<String, Object> shouldFilter = HashMultimap.create();
 				Map<String, Object> mustTermsFilter = new HashMap<>();
-				mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.getGroupId());
+				mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.groupId());
 				mustFilter.put(convertAttributetoKeyword(PacmanSdkConstants.TYPE), PacmanRuleConstants.INBOUND);
 				mustNotFilter.put(convertAttributetoKeyword(PacmanRuleConstants.ES_SG_IP_PROTOCOL_ATTRIBUTE), PacmanRuleConstants.PROTOCOL_ICMP);
 				resultJsonSecGrpRules = RulesElasticSearchRepositoryUtil.getQueryDetailsFromES(sgRulesUrl, mustFilter,
@@ -1699,7 +1698,7 @@ public class PacmanUtils {
 						List<String> grpId = new ArrayList<>();
 						if (!CollectionUtils.isNullOrEmpty(listenerPorts)) {
 							listenerPorts.stream().forEach(eachListener -> {
-								if (protocol.equalsIgnoreCase(eachListener.getProtocol()) && fromPort.equalsIgnoreCase(String.valueOf(eachListener.getPort())) && toPort.equalsIgnoreCase(String.valueOf(eachListener.getPort()))) {
+								if (protocol.equalsIgnoreCase(eachListener.protocol()) && fromPort.equalsIgnoreCase(String.valueOf(eachListener.port())) && toPort.equalsIgnoreCase(String.valueOf(eachListener.port()))) {
 									grpId.add(secGrpId);
 								}
 							});
@@ -1787,13 +1786,13 @@ public class PacmanUtils {
 			JsonArray hitsArray = hitsJson.getAsJsonArray(PacmanRuleConstants.HITS);
 			if (null != hitsArray && !hitsArray.isEmpty()) {
 				for (int i = 0; i < hitsArray.size(); i++) {
-					Listener listener = new Listener();
+					Listener listener = Listener.builder().build();
 					JsonObject source = hitsArray.get(i).getAsJsonObject().get(PacmanRuleConstants.SOURCE).getAsJsonObject();
 					String port = source.get(PacmanRuleConstants.PORT).getAsString();
 					String protocol = source.get(PacmanRuleConstants.ELB_PROTOCOL).getAsString();
 					if (StringUtils.isNotEmpty(port) && StringUtils.isNotEmpty(protocol)) {
-						listener.setProtocol(protocol);
-						listener.setPort(Integer.valueOf(port));
+						listener.protocol(protocol);
+						listener.port(Integer.valueOf(port));
 					}
 					listeners.add(listener);
 				}
@@ -1860,9 +1859,9 @@ public class PacmanUtils {
                 JsonObject source = hitsArray.get(i).getAsJsonObject().get(PacmanRuleConstants.SOURCE)
                         .getAsJsonObject();
                 String securitygroupid = source.get(PacmanRuleConstants.EC2_WITH_SECURITYGROUP_ID).getAsString();
-                GroupIdentifier groupIdentifier = new GroupIdentifier();
+                GroupIdentifier groupIdentifier = GroupIdentifier.builder().build();
                 if (!com.amazonaws.util.StringUtils.isNullOrEmpty(securitygroupid)) {
-                    groupIdentifier.setGroupId(securitygroupid);
+                    groupIdentifier.groupId(securitygroupid);
                     list.add(groupIdentifier);
                 }
             }
@@ -2227,7 +2226,7 @@ public class PacmanUtils {
         return null;
     }
 
-    public static boolean checkACLAccess(AmazonS3Client awsS3Client, String s3BucketName, String accessType) {
+    public static boolean checkACLAccess(S3Client awsS3Client, String s3BucketName, String accessType) {
         logger.info("inside the checkACLAccess method");
         Boolean openAcces = false;
         AccessControlList bucketAcl;
@@ -2235,7 +2234,7 @@ public class PacmanUtils {
         try {
             bucketAcl = awsS3Client.getBucketAcl(s3BucketName);
 
-            List<Grant> grants = bucketAcl.getGrantsAsList();
+            List<Grant> grants = bucketAcl.grantsAsList();
 
             // Check grants has which permission
             if (!CollectionUtils.isNullOrEmpty(grants)) {
@@ -2246,9 +2245,9 @@ public class PacmanUtils {
                 }
             }
 
-        } catch (AmazonS3Exception s3Exception) {
+        } catch (S3ExceptionClient s3Exception) {
             logger.error("error : ", s3Exception);
-            throw new RuleExecutionFailedExeption(s3Exception.getMessage());
+            throw new RuleExecutionFailedExeption(s3Exception.message());
         }
         return openAcces;
     }
@@ -2293,7 +2292,7 @@ public class PacmanUtils {
             Map<String, Object> mustNotFilter = new HashMap<>();
             HashMultimap<String, Object> shouldFilter = HashMultimap.create();
             Map<String, Object> mustTermsFilter = new HashMap<>();
-            mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.getGroupId());
+            mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.groupId());
             shouldFilter.put(convertAttributetoKeyword(PacmanRuleConstants.CIDRIP), cidrIp);
             shouldFilter.put(convertAttributetoKeyword(PacmanRuleConstants.CIDRIPV6), cidripv6);
             mustFilter.put(convertAttributetoKeyword(PacmanSdkConstants.TYPE), PacmanRuleConstants.INBOUND);
@@ -2348,7 +2347,7 @@ public class PacmanUtils {
             Map<String, Object> mustNotFilter = new HashMap<>();
             HashMultimap<String, Object> shouldFilter = HashMultimap.create();
             Map<String, Object> mustTermsFilter = new HashMap<>();
-            mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.getGroupId());
+            mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.GROUP_ID), securityGrp.groupId());
             mustFilter.put(convertAttributetoKeyword(PacmanRuleConstants.CIDRIP), cidrIp);
             mustFilter.put(convertAttributetoKeyword(PacmanSdkConstants.TYPE), PacmanRuleConstants.INBOUND);
             resultJson = RulesElasticSearchRepositoryUtil.getQueryDetailsFromES(sgRulesUrl, mustFilter, mustNotFilter,
@@ -2788,7 +2787,7 @@ public class PacmanUtils {
         return data;
     }
 
-    public static Map<String, Boolean> getPublicAccessPolicy(AmazonS3Client awsS3Client, String s3BucketName,
+    public static Map<String, Boolean> getPublicAccessPolicy(S3Client awsS3Client, String s3BucketName,
             String accessType) {
         Map<String, Boolean> map = new HashMap<>();
 
@@ -2799,8 +2798,8 @@ public class PacmanUtils {
         BucketPolicy bucketPolicy = awsS3Client.getBucketPolicy(s3BucketName);
 
         JsonArray jsonArray = new JsonArray();
-        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.getPolicyText())) {
-            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.getPolicyText());
+        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.policyText())) {
+            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.policyText());
             jsonArray = resultJson.get("Statement").getAsJsonArray();
         }
         String actionString = null;
@@ -3083,14 +3082,14 @@ public class PacmanUtils {
 
         List<Permission> permissions = new ArrayList<>();
         for (Grant grant : grants) {
-            if ((PacmanRuleConstants.ANY_S3_AUTHENTICATED_USER_URI.equalsIgnoreCase(grant.getGrantee().getIdentifier()) || PacmanRuleConstants.ALL_S3_USER_URI
-                    .equalsIgnoreCase(grant.getGrantee().getIdentifier()))
+            if ((PacmanRuleConstants.ANY_S3_AUTHENTICATED_USER_URI.equalsIgnoreCase(grant.grantee().identifier()) || PacmanRuleConstants.ALL_S3_USER_URI
+                    .equalsIgnoreCase(grant.grantee().identifier()))
 
                     &&
 
-                    (grant.getPermission().toString().contains(accessTypeToCheck) || grant.getPermission().toString()
+                    (grant.permission().toString().contains(accessTypeToCheck) || grant.permission().toString()
                             .equalsIgnoreCase(PacmanRuleConstants.FULL_CONTROL))) {
-                permissions.add(grant.getPermission());
+                permissions.add(grant.permission());
             }
         }
         return permissions;
@@ -3529,8 +3528,8 @@ public class PacmanUtils {
             List<GroupIdentifier> securityGrouplist) {
         List<String> sgList = new ArrayList(Arrays.asList(securityGroupId.split(delimeter)));
         for (String sg : sgList) {
-            GroupIdentifier groupIdentifier = new GroupIdentifier();
-            groupIdentifier.setGroupId(sg);
+            GroupIdentifier groupIdentifier = GroupIdentifier.builder().build();
+            groupIdentifier.groupId(sg);
             securityGrouplist.add(groupIdentifier);
         }
         return securityGrouplist;
@@ -3662,9 +3661,9 @@ public class PacmanUtils {
                 String securitygroupid = source.get(sgField).getAsString();
                 String vpcSecuritygroupStatus = source.get(sgStatusField).getAsString();
                 if("active".equals(vpcSecuritygroupStatus)){
-                GroupIdentifier groupIdentifier = new GroupIdentifier();
+                GroupIdentifier groupIdentifier = GroupIdentifier.builder().build();
                 if (!com.amazonaws.util.StringUtils.isNullOrEmpty(securitygroupid)) {
-                    groupIdentifier.setGroupId(securitygroupid);
+                    groupIdentifier.groupId(securitygroupid);
                     list.add(groupIdentifier);
                 }
             }
@@ -3825,7 +3824,7 @@ public class PacmanUtils {
             List<GroupIdentifier> listSecurityGroupID = new ArrayList<>();
             getSecurityGrouplist(returnedValue, ":;", listSecurityGroupID);
             for (GroupIdentifier sgId : listSecurityGroupID) {
-                if (sgId.getGroupId().equals(securityGroupId)) {
+                if (sgId.groupId().equals(securityGroupId)) {
                     return securityGroupId;
                 }
             }
@@ -4223,7 +4222,7 @@ public class PacmanUtils {
         String baseRole=System.getProperty(Constants.BASE_ROLE);
         String secretManagerPrefix=System.getProperty(Constants.SECRET_MANAGER_PATH);
 
-        BasicSessionCredentials credential = credentialProvider.getBaseAccountCredentials(baseAccount,baseRegion, baseRole);
+        AwsSessionCredentials credential = credentialProvider.getBaseAccountCredentials(baseAccount,baseRegion, baseRole);
         String secretData=awsSecretManagerUtil.fetchSecret(secretManagerPrefix+"/"+baseRole+"/qualys",credential,baseRegion);
         Map<String, String> dataMap = PacmanUtils.getJsonData(secretData);
         String baseUri=dataMap.get("qualysApiUrl");

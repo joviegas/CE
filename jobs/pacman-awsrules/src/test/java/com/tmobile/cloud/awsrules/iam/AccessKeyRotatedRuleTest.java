@@ -44,13 +44,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AccessKeyMetadata;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,IAMUtils.class, Annotation.class})
@@ -61,28 +63,28 @@ public class AccessKeyRotatedRuleTest {
     
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
 
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
         Date date = new Date(); // Or where ever you get it from
         Date daysAgo = new DateTime(date).minusDays(300).toDate();
-        AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata();
-        accessKeyMetadata.setAccessKeyId("123");
-        accessKeyMetadata.setCreateDate(daysAgo);
-        accessKeyMetadata.setStatus("Active");
+        AccessKeyMetadata accessKeyMetadata = AccessKeyMetadata.builder().build();
+        accessKeyMetadata.accessKeyId("123");
+        accessKeyMetadata.createDate(daysAgo);
+        accessKeyMetadata.status("Active");
        
         List<AccessKeyMetadata> accessKeyMetadatas  = new ArrayList<>();
         accessKeyMetadatas.add(accessKeyMetadata);
 
-        AccessKeyMetadata accessKeyMetadataTest = new AccessKeyMetadata();
-        accessKeyMetadataTest.setAccessKeyId("123");
-        accessKeyMetadataTest.setCreateDate(new Date());
-        accessKeyMetadataTest.setStatus("Inactive");
+        AccessKeyMetadata accessKeyMetadataTest = AccessKeyMetadata.builder().build();
+        accessKeyMetadataTest.accessKeyId("123");
+        accessKeyMetadataTest.createDate(new Date());
+        accessKeyMetadataTest.status("Inactive");
        
         List<AccessKeyMetadata> accessKeyMetadatasTest  = new ArrayList<>();
         accessKeyMetadatasTest.add(accessKeyMetadataTest);

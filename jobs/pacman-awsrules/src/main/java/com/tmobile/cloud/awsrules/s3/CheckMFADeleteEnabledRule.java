@@ -9,8 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketVersioningConfiguration;
+
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.AWSService;
@@ -45,7 +46,7 @@ public class CheckMFADeleteEnabledRule extends BasePolicy {
     public PolicyResult execute(Map<String, String> ruleParam, Map<String, String> resourceAttributes) {
         logger.debug("========CheckMFADeleteEnabledRule started=========");
         Map<String, Object> map = null;
-        AmazonS3Client awsS3Client = null;
+        S3Client awsS3Client = null;
         Annotation annotation = null;
         BucketVersioningConfiguration configuration = null;
         String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
@@ -66,7 +67,7 @@ public class CheckMFADeleteEnabledRule extends BasePolicy {
         if (!resourceAttributes.isEmpty()) {
             try {
                 map = getClientFor(AWSService.S3, roleIdentifyingString, ruleParam);
-                awsS3Client = (AmazonS3Client) map.get(PacmanSdkConstants.CLIENT);
+                awsS3Client = (S3Client) map.get(PacmanSdkConstants.CLIENT);
             } catch (UnableToCreateClientException e) {
                 logger.error("unable to get client for following input", e);
                 throw new InvalidInputException(e.toString());

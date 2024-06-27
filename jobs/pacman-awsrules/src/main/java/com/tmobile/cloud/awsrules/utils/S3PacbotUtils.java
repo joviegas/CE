@@ -15,12 +15,8 @@ import com.tmobile.pacman.commons.exception.InvalidInputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.BucketPolicy;
-import com.amazonaws.services.s3.model.Grant;
-import com.amazonaws.services.s3.model.Permission;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 import com.amazonaws.util.CollectionUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -58,15 +54,15 @@ public class S3PacbotUtils {
         Set<Permission> permissions = new HashSet();
         for (Grant grant : grants) {
             if ((PacmanRuleConstants.ANY_S3_AUTHENTICATED_USER_URI
-                    .equalsIgnoreCase(grant.getGrantee().getIdentifier()) || PacmanRuleConstants.ALL_S3_USER_URI
-                    .equalsIgnoreCase(grant.getGrantee().getIdentifier()))
+                    .equalsIgnoreCase(grant.grantee().identifier()) || PacmanRuleConstants.ALL_S3_USER_URI
+                    .equalsIgnoreCase(grant.grantee().identifier()))
 
                     &&
 
-                    (accessTypeToCheck.contains(grant.getPermission()
-                            .toString()) || grant.getPermission().toString()
+                    (accessTypeToCheck.contains(grant.permission()
+                            .toString()) || grant.permission().toString()
                             .equalsIgnoreCase(PacmanRuleConstants.FULL_CONTROL))) {
-                permissions.add(grant.getPermission());
+                permissions.add(grant.permission());
             }
         }
         return permissions;
@@ -78,26 +74,26 @@ public class S3PacbotUtils {
      * @param accessType
      * @return
      */
-    public static Set<Permission> checkACLPermissions(AmazonS3Client awsS3Client, String s3BucketName, String accessType) {
+    public static Set<Permission> checkACLPermissions(S3Client awsS3Client, String s3BucketName, String accessType) {
         AccessControlList bucketAcl;
         Set<Permission> permissionList = new HashSet<>();
         try {
             bucketAcl = awsS3Client.getBucketAcl(s3BucketName);
-            List<Grant> grants = bucketAcl.getGrantsAsList();
+            List<Grant> grants = bucketAcl.grantsAsList();
             if (!CollectionUtils.isNullOrEmpty(grants)) {
                 permissionList = checkAnyGrantHasOpenToReadOrWriteAccess(grants, accessType);
             }
-        } catch (AmazonS3Exception s3Exception) {
+        } catch (S3ExceptionClient s3Exception) {
             logger.error("error : ", s3Exception);
-            if (s3Exception.getMessage().contains("The specified bucket does not exist")) {
+            if (s3Exception.message().contains("The specified bucket does not exist")) {
                 throw new RuntimeException(s3Exception);
             }
-            throw new RuleExecutionFailedExeption(s3Exception.getMessage());
+            throw new RuleExecutionFailedExeption(s3Exception.message());
         }
         return permissionList;
     }
 
-    public static Map<String, Boolean> getPublicAccessPolicy(AmazonS3Client awsS3Client, String s3BucketName, String accessType) {
+    public static Map<String, Boolean> getPublicAccessPolicy(S3Client awsS3Client, String s3BucketName, String accessType) {
 
         Map<String, Boolean> map = new HashMap<>();
         JsonArray jsonArray = getPolicyArray(awsS3Client, s3BucketName);
@@ -299,14 +295,14 @@ public class S3PacbotUtils {
         return publicAccess;
     }
 
-    private static JsonArray getPolicyArray(AmazonS3Client awsS3Client, String s3BucketName) {
+    private static JsonArray getPolicyArray(S3Client awsS3Client, String s3BucketName) {
         JsonParser jsonParser = new JsonParser();
         JsonArray policyJsonArray = new JsonArray();
         BucketPolicy bucketPolicy = awsS3Client.getBucketPolicy(s3BucketName);
 
 
-        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.getPolicyText())) {
-            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.getPolicyText());
+        if (!com.amazonaws.util.StringUtils.isNullOrEmpty(bucketPolicy.policyText())) {
+            JsonObject resultJson = (JsonObject) jsonParser.parse(bucketPolicy.policyText());
             policyJsonArray = resultJson.get("Statement").getAsJsonArray();
         }
         return policyJsonArray;

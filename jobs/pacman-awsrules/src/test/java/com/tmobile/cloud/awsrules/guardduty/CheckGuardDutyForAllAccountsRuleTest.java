@@ -42,13 +42,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.guardduty.AmazonGuardDutyClient;
-import com.amazonaws.services.guardduty.model.ListDetectorsResult;
+import software.amazon.awssdk.services.guardduty.GuardDutyClient;
+import software.amazon.awssdk.services.guardduty.model.ListDetectorsResponse;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -59,23 +61,23 @@ public class CheckGuardDutyForAllAccountsRuleTest {
     
     
     @Mock
-    AmazonGuardDutyClient dutyClient;
+    GuardDutyClient dutyClient;
 
     @Before
     public void setUp() throws Exception{
-        dutyClient = PowerMockito.mock(AmazonGuardDutyClient.class); 
+        dutyClient = PowerMockito.mock(GuardDutyClient.class); 
     }
     @Test
     public void test()throws Exception{
         Collection<String> li = new ArrayList<>();
         li.add("123");
-        ListDetectorsResult detectorsResult = new ListDetectorsResult();
-        detectorsResult.setDetectorIds(li);
+        ListDetectorsResponse detectorsResult = ListDetectorsResponse.builder().build();
+        detectorsResult.detectorIds(li);
         
         
         Collection<String> emptyList = new ArrayList<>();
-        ListDetectorsResult emptyDetectorsResult = new ListDetectorsResult();
-        emptyDetectorsResult.setDetectorIds(emptyList);
+        ListDetectorsResponse emptyDetectorsResult = ListDetectorsResponse.builder().build();
+        emptyDetectorsResult.detectorIds(emptyList);
         
         
         mockStatic(PacmanUtils.class);

@@ -28,17 +28,16 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.services.identitymanagement.model.AccessKeyMetadata;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
-import com.amazonaws.services.identitymanagement.model.StatusType;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.StatusType;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -82,7 +81,7 @@ public class AccessKeyRotatedRule extends BasePolicy {
 		temp.put("region", "us-west-2");
 		
 		Map<String, Object> map = null;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String userName = ruleParam.get(PacmanSdkConstants.RESOURCE_ID);
 		
@@ -107,7 +106,7 @@ public class AccessKeyRotatedRule extends BasePolicy {
 		String message =  null;
 		try {
 			map = getClientFor(AWSService.IAM, roleIdentifyingString, temp);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 			
 			 accessKeyMetadatas = IAMUtils.getAccessKeyInformationForUser(userName, iamClient);
 		        if(!CollectionUtils.isNullOrEmpty(accessKeyMetadatas)){
@@ -158,11 +157,11 @@ public class AccessKeyRotatedRule extends BasePolicy {
 		Boolean keyNotRotated = Boolean.FALSE;
     	for(AccessKeyMetadata accessKeyMetadata : accessKeyMetadatas){
     		//Skip the inactive keys
-    		if(accessKeyMetadata.getStatus().equals(StatusType.Inactive.toString())){ 
+    		if(accessKeyMetadata.status().equals(StatusType.Inactive.toString())){ 
     			continue;
     		}
     		
-    		Date keyCreationDate = accessKeyMetadata.getCreateDate();
+    		Date keyCreationDate = accessKeyMetadata.createDate();
     		DateTime creationDate = new DateTime(keyCreationDate);
     		DateTime currentDate = new DateTime();
     		if(Days.daysBetween(creationDate, currentDate).getDays() > PacmanRuleConstants.ACCESSKEY_ROTATION_DURATION){

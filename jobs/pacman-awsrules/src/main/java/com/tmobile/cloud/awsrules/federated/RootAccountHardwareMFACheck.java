@@ -10,13 +10,12 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AssignmentStatusType;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryRequest;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryResult;
-import com.amazonaws.services.identitymanagement.model.ListVirtualMFADevicesRequest;
-import com.amazonaws.services.identitymanagement.model.ListVirtualMFADevicesResult;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AssignmentStatusType;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryRequest;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListVirtualMfaDevicesRequest;
+import software.amazon.awssdk.services.identitymanagement.model.ListVirtualMFADevicesResponse;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -96,7 +95,7 @@ public class RootAccountHardwareMFACheck extends BasePolicy {
 
 		String description = null;
 		Map<String, Object> map = null;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 
 		ruleParamforIAM.putAll(ruleParam);
@@ -104,19 +103,19 @@ public class RootAccountHardwareMFACheck extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 
-			GetAccountSummaryRequest request = new GetAccountSummaryRequest();
-			GetAccountSummaryResult response = iamClient.getAccountSummary(request);
-			Map<String, Integer> summaryMap = response.getSummaryMap();
+			GetAccountSummaryRequest request = GetAccountSummaryRequest.builder().build();
+			GetAccountSummaryResponse response = iamClient.getAccountSummary(request);
+			Map<String, Integer> summaryMap = response.summaryMap();
 
 			if (summaryMap.get("AccountMFAEnabled") == 1) {
-				ListVirtualMFADevicesRequest listMfaRequest = new ListVirtualMFADevicesRequest();
-				ListVirtualMFADevicesResult result = new ListVirtualMFADevicesResult();
+				ListVirtualMfaDevicesRequest listMfaRequest = ListVirtualMfaDevicesRequest.builder().build();
+				ListVirtualMFADevicesResponse result = ListVirtualMFADevicesResponse.builder().build();
 				result = iamClient
-						.listVirtualMFADevices(listMfaRequest.withAssignmentStatus(AssignmentStatusType.Assigned));
-				if (null != result && !CollectionUtils.isNullOrEmpty(result.getVirtualMFADevices())) {
-					if (result.getVirtualMFADevices().stream()
+						.listVirtualMFADevices(listMfaRequest.assignmentStatus(AssignmentStatusType.Assigned));
+				if (null != result && !CollectionUtils.isNullOrEmpty(result.virtualMfaDevices())) {
+					if (result.virtualMfaDevices().stream()
 							.filter(device -> device.getSerialNumber().contains("root-account-mfa-device")).count() > 0)
 						return description = "Hardware MFA device is not configured for root account !!";
 				}

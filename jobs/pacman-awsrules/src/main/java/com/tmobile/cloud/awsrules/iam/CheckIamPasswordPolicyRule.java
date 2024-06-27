@@ -21,15 +21,14 @@ package com.tmobile.cloud.awsrules.iam;
 
 import java.util.*;
 
-import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementException;
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.services.identitymanagement.model.IdentityManagementExceptionClient;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetAccountPasswordPolicyResult;
-import com.amazonaws.services.identitymanagement.model.PasswordPolicy;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountPasswordPolicyResponse;
+import software.amazon.awssdk.services.identitymanagement.model.PasswordPolicy;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.AWSService;
@@ -73,7 +72,7 @@ public class CheckIamPasswordPolicyRule extends BasePolicy {
 		temp.put("region", "us-west-2");
 
 		Map<String, Object> map = null;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		
 		logger.info(resourceAttributes.get("accountid"));
@@ -95,7 +94,7 @@ public class CheckIamPasswordPolicyRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, roleIdentifyingString, temp);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 		} catch (UnableToCreateClientException e) {
 			logger.error("unable to get client for following input", e);
 			throw new InvalidInputException(e.toString());
@@ -105,16 +104,16 @@ public class CheckIamPasswordPolicyRule extends BasePolicy {
 			Optional<PasswordPolicy> pwdPolicyOptional=Optional.ofNullable(null);
 			for(int i=0;i<PacmanSdkConstants.MAX_RETRY_COUNT;i++) {
 				try {
-					pwdPolicyOptional = Optional.ofNullable(iamClient).map(obj -> obj.getAccountPasswordPolicy()).map(obj -> (PasswordPolicy)obj.getPasswordPolicy());
-				} catch (AmazonIdentityManagementException e) {
-					if (e.getMessage().startsWith("Rate exceeded")) {
+					pwdPolicyOptional = Optional.ofNullable(iamClient).map(obj -> obj.getAccountPasswordPolicy()).map(obj -> (PasswordPolicy)obj.passwordPolicy());
+				} catch (IdentityManagementExceptionClient e) {
+					if (e.message().startsWith("Rate exceeded")) {
 						try {
 							Thread.sleep(5000);
 						} catch (InterruptedException ex) {
 							throw new RuntimeException(ex);
 						}
 						if (i == 2) {
-							logger.error(e.getMessage());
+							logger.error(e.message());
 							throw e;
 						}
 						logger.info("Retrying inside execute");
@@ -180,53 +179,53 @@ public class CheckIamPasswordPolicyRule extends BasePolicy {
 
 		policyIssues = new StringBuilder();
 		Boolean complianceStatus = Boolean.TRUE;
-		if (passwordPolicy.getMaxPasswordAge()==null || passwordPolicy.getMaxPasswordAge() > Integer.parseInt(ruleParam.get("maxPasswordAge"))) {
-			policyIssues.append("The standard max password age is "+ruleParam.get("maxPasswordAge")+" days but the found password age is "+passwordPolicy.getMaxPasswordAge()+" days\n");
+		if (passwordPolicy.maxPasswordAge()==null || passwordPolicy.maxPasswordAge() > Integer.parseInt(ruleParam.get("maxPasswordAge"))) {
+			policyIssues.append("The standard max password age is "+ruleParam.get("maxPasswordAge")+" days but the found password age is "+passwordPolicy.maxPasswordAge()+" days\n");
 			complianceStatus = Boolean.FALSE;
 		}
 		
-		if (passwordPolicy.getMinimumPasswordLength()==null || passwordPolicy.getMinimumPasswordLength() != Integer.parseInt(ruleParam.get("minPasswordLength"))) {
+		if (passwordPolicy.minimumPasswordLength()==null || passwordPolicy.minimumPasswordLength() != Integer.parseInt(ruleParam.get("minPasswordLength"))) {
 			policyIssues.append("Min password length do not matched the standards \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
 		
-		if (passwordPolicy.getPasswordReusePrevention()==null || passwordPolicy.getPasswordReusePrevention() != Integer.parseInt(ruleParam.get("lastPasswordsToRemember"))) {
+		if (passwordPolicy.passwordReusePrevention()==null || passwordPolicy.passwordReusePrevention() != Integer.parseInt(ruleParam.get("lastPasswordsToRemember"))) {
 			policyIssues.append("Password reuse prevention number do not matched the standards \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
-		if (passwordPolicy.getAllowUsersToChangePassword()==null || !passwordPolicy.getAllowUsersToChangePassword().equals(isAllowUsersToChangePassword)) {
+		if (passwordPolicy.allowUsersToChangePassword()==null || !passwordPolicy.allowUsersToChangePassword().equals(isAllowUsersToChangePassword)) {
 			policyIssues.append("Allow users to change passwords do not matched the standards \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
-		if (passwordPolicy.getHardExpiry()==null || !passwordPolicy.getHardExpiry().equals(isHardExpiry)) {
+		if (passwordPolicy.hardExpiry()==null || !passwordPolicy.hardExpiry().equals(isHardExpiry)) {
 			policyIssues.append("Hard expiry do not matched the standards \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
-		if (passwordPolicy.getRequireLowercaseCharacters()==null || !passwordPolicy.getRequireLowercaseCharacters().equals(isRequireLowercaseCharacters)) {
+		if (passwordPolicy.requireLowercaseCharacters()==null || !passwordPolicy.requireLowercaseCharacters().equals(isRequireLowercaseCharacters)) {
 			policyIssues.append("Require at least one lowercase letter \n");
 			complianceStatus = Boolean.FALSE;
 		}
 		
-		if (passwordPolicy.getRequireUppercaseCharacters()==null || !passwordPolicy.getRequireUppercaseCharacters().equals(isRequireUppercaseCharacters)) {
+		if (passwordPolicy.requireUppercaseCharacters()==null || !passwordPolicy.requireUppercaseCharacters().equals(isRequireUppercaseCharacters)) {
 			policyIssues.append("Require at least one uppercase letter \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
-		if (passwordPolicy.getExpirePasswords()==null || !passwordPolicy.getExpirePasswords().equals(isExpirePasswords)) {
+		if (passwordPolicy.expirePasswords()==null || !passwordPolicy.expirePasswords().equals(isExpirePasswords)) {
 			policyIssues.append("Expire passwords do not matched the standards \n");
 			complianceStatus = Boolean.FALSE;
 		}
 
-		if (passwordPolicy.getRequireSymbols()==null || !passwordPolicy.getRequireSymbols().equals(isRequireSymbols)) {
+		if (passwordPolicy.requireSymbols()==null || !passwordPolicy.requireSymbols().equals(isRequireSymbols)) {
 			policyIssues.append("Require at least one non-alpanumeric character \n");
 			complianceStatus = Boolean.FALSE;
 		}
 		
-		if (passwordPolicy.getRequireNumbers()==null || !passwordPolicy.getRequireNumbers().equals(isRequireNumbers)) {
+		if (passwordPolicy.requireNumbers()==null || !passwordPolicy.requireNumbers().equals(isRequireNumbers)) {
 			policyIssues.append("Require at least one number \n");
 			complianceStatus = Boolean.FALSE;
 		}

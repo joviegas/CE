@@ -31,11 +31,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeFlowLogsRequest;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.FlowLog;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeFlowLogsRequest;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.FlowLog;
 import com.amazonaws.util.CollectionUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanEc2Utils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -86,7 +85,7 @@ public class VpcFlowLogsEnabled extends BasePolicy {
 
         logger.debug("========VpcFlowLogsEnabled started=========");
         Map<String, Object> map = null;
-        AmazonEC2 ec2Client = null;
+        Ec2Client ec2Client = null;
         String roleIdentifyingString = ruleParam
                 .get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
         String entityId = ruleParam.get(PacmanSdkConstants.RESOURCE_ID);
@@ -108,16 +107,16 @@ public class VpcFlowLogsEnabled extends BasePolicy {
         Annotation annotation = null;
         try {
             map = getClientFor(AWSService.EC2, roleIdentifyingString, ruleParam);
-            ec2Client = (AmazonEC2) map.get(PacmanSdkConstants.CLIENT);
+            ec2Client = (Ec2Client) map.get(PacmanSdkConstants.CLIENT);
         } catch (UnableToCreateClientException e) {
             logger.error("unable to get client for following input", e);
             throw new InvalidInputException(e.toString());
         }
-        DescribeFlowLogsRequest describeFlowLogsRequest = new DescribeFlowLogsRequest();
-        Filter filter = new Filter();
-        filter.setName(PacmanRuleConstants.RESOURCE_NAME);
-        filter.setValues(Arrays.asList(entityId));
-        describeFlowLogsRequest.setFilter(Arrays.asList(filter));
+        DescribeFlowLogsRequest describeFlowLogsRequest = DescribeFlowLogsRequest.builder().build();
+        Filter filter = Filter.builder().build();
+        filter.name(PacmanRuleConstants.RESOURCE_NAME);
+        filter.values(Arrays.asList(entityId));
+        describeFlowLogsRequest.filter(Arrays.asList(filter));
         List<FlowLog> flowLogs = PacmanEc2Utils.getFlowLogs(ec2Client,
                 describeFlowLogsRequest);
 
