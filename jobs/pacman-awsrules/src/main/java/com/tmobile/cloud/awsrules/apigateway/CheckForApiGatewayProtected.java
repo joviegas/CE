@@ -25,13 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
-import com.amazonaws.services.apigateway.model.GetMethodRequest;
-import com.amazonaws.services.apigateway.model.GetMethodResult;
-import com.amazonaws.services.apigateway.model.GetResourcesRequest;
-import com.amazonaws.services.apigateway.model.GetResourcesResult;
-import com.amazonaws.services.apigateway.model.Method;
-import com.amazonaws.services.apigateway.model.Resource;
+import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
+import software.amazon.awssdk.services.apigateway.model.*;
 import com.google.gson.Gson;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -113,7 +108,7 @@ public class CheckForApiGatewayProtected extends BasePolicy {
             logger.info(PacmanRuleConstants.MISSING_CONFIGURATION);
             throw new InvalidInputException(PacmanRuleConstants.MISSING_CONFIGURATION);
         }
-        AmazonApiGatewayClient apiGatewayClient = getClient(
+        ApiGatewayClient apiGatewayClient = getClient(
                 roleIdentifyingString, ruleParam);
 
         List<String> authTypeList = PacmanUtils.splitStringToAList(authType,
@@ -122,18 +117,18 @@ public class CheckForApiGatewayProtected extends BasePolicy {
             for (Resource resource : getResourceList(resourceId,
                     apiGatewayClient)) {
                 Map<String, Method> httpMethodMap = resource
-                        .getResourceMethods();
+                        .resourceMethods();
 
                 if (httpMethodMap != null) {
                     for (Map.Entry<String, Method> httpMethod : httpMethodMap
                             .entrySet()) {
-                        GetMethodResult methodResult = getGetMethodResult(
+                        GetMethodResponse methodResult = getGetMethodResult(
                                 resource, resourceId, httpMethod,
                                 apiGatewayClient);
                         String authorisationType = methodResult
-                                .getAuthorizationType();
+                                .authorizationType();
                         boolean isApiKeyRequired = methodResult
-                                .getApiKeyRequired();
+                                .apiKeyRequired();
                         boolean isAuthType = false;
                         logger.info("========Checking is auth type true=========");
                         for (String authorType : authTypeList) {
@@ -156,7 +151,7 @@ public class CheckForApiGatewayProtected extends BasePolicy {
                                         category);
                             }
 
-                            formateAPIMethodDetails(resource.getPath(),
+                            formateAPIMethodDetails(resource.path(),
                                     httpMethod.getKey(),
                                     String.valueOf(isApiKeyRequired));
                         }
@@ -212,12 +207,12 @@ public class CheckForApiGatewayProtected extends BasePolicy {
     }
 
     private List<Resource> getResourceList(String resourceId,
-            AmazonApiGatewayClient apiGatewayClient) {
-        GetResourcesRequest resourcesRequest = new GetResourcesRequest();
-        resourcesRequest.setRestApiId(resourceId);
-        GetResourcesResult resourceResult = apiGatewayClient
+            ApiGatewayClient apiGatewayClient) {
+        GetResourcesRequest resourcesRequest = GetResourcesRequest.builder().build();
+        resourcesRequest.restApiId(resourceId);
+        GetResourcesResponse resourceResult = apiGatewayClient
                 .getResources(resourcesRequest);
-        return resourceResult.getItems();
+        return resourceResult.items();
     }
 
     @Override
@@ -225,14 +220,14 @@ public class CheckForApiGatewayProtected extends BasePolicy {
         return "This rule checks id the mandatory parameters are preset in Ec2 instance";
     }
 
-    private AmazonApiGatewayClient getClient(String roleIdentifyingString,
+    private ApiGatewayClient getClient(String roleIdentifyingString,
             Map<String, String> ruleParam) {
         Map<String, Object> map = null;
-        AmazonApiGatewayClient apiGatewayClient = null;
+        ApiGatewayClient apiGatewayClient = null;
         try {
             map = getClientFor(AWSService.APIGTW, roleIdentifyingString,
                     ruleParam);
-            apiGatewayClient = (AmazonApiGatewayClient) map
+            apiGatewayClient = (ApiGatewayClient) map
                     .get(PacmanSdkConstants.CLIENT);
         } catch (UnableToCreateClientException e) {
             logger.error("unable to get client for following input", e);
@@ -241,13 +236,13 @@ public class CheckForApiGatewayProtected extends BasePolicy {
         return apiGatewayClient;
     }
 
-    private GetMethodResult getGetMethodResult(Resource resource,
+    private GetMethodResponse getGetMethodResult(Resource resource,
             String resourceId, Map.Entry<String, Method> httpMethod,
-            AmazonApiGatewayClient apiGatewayClient) {
-        GetMethodRequest methodRequest = new GetMethodRequest();
-        methodRequest.setResourceId(resource.getId());
-        methodRequest.setRestApiId(resourceId);
-        methodRequest.setHttpMethod(httpMethod.getKey());
+            ApiGatewayClient apiGatewayClient) {
+        GetMethodRequest methodRequest = GetMethodRequest.builder().build();
+        methodRequest.resourceId(resource.id());
+        methodRequest.restApiId(resourceId);
+        methodRequest.httpMethod(httpMethod.getKey());
         return apiGatewayClient.getMethod(methodRequest);
     }
 }

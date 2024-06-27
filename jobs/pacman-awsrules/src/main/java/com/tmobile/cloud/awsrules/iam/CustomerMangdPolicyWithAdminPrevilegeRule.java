@@ -6,14 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -111,7 +110,7 @@ public class CustomerMangdPolicyWithAdminPrevilegeRule extends BasePolicy {
 		String description = null;
 		Map<String, Object> map = null;
 		boolean isAdminPrevilege = false;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 
 		ruleParamforIAM.putAll(ruleParam);
@@ -120,7 +119,7 @@ public class CustomerMangdPolicyWithAdminPrevilegeRule extends BasePolicy {
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING),
 					ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 		} catch (UnableToCreateClientException e) {
 			logger.error("unable to get client for following input", e);
 			throw new InvalidInputException(e.toString());

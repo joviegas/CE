@@ -40,13 +40,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.route53.AmazonRoute53Client;
-import com.amazonaws.services.route53.model.HostedZone;
-import com.amazonaws.services.route53.model.ListHostedZonesResult;
+import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.route53.model.HostedZone;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesResponse;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class})
@@ -57,25 +59,25 @@ public class CheckAwsRoute53DNSForAccountsRuleTest {
     
     
     @Mock
-    AmazonRoute53Client route53Client;
+    Route53Client route53Client;
 
     @Before
     public void setUp() throws Exception{
-        route53Client = PowerMockito.mock(AmazonRoute53Client.class); 
+        route53Client = PowerMockito.mock(Route53Client.class); 
     }
     @Test
     public void test()throws Exception{
-        HostedZone hostedZone = new HostedZone();
-        hostedZone.setId("123");
+        HostedZone hostedZone = HostedZone.builder().build();
+        hostedZone.id("123");
         Collection<HostedZone> hostedZones = new ArrayList<>();
         hostedZones.add(hostedZone);
-        ListHostedZonesResult result = new ListHostedZonesResult();
-        result.setHostedZones(hostedZones);
+        ListHostedZonesResponse result = ListHostedZonesResponse.builder().build();
+        result.hostedZones(hostedZones);
         
         
         Collection<HostedZone> emptyList = new ArrayList<>();
-        ListHostedZonesResult emptyDetectorsResult = new ListHostedZonesResult();
-        emptyDetectorsResult.setHostedZones(emptyList);
+        ListHostedZonesResponse emptyDetectorsResult = ListHostedZonesResponse.builder().build();
+        emptyDetectorsResult.hostedZones(emptyList);
         
         
         mockStatic(PacmanUtils.class);

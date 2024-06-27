@@ -42,13 +42,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.config.AmazonConfigClient;
-import com.amazonaws.services.config.model.ConfigurationRecorder;
-import com.amazonaws.services.config.model.DescribeConfigurationRecordersResult;
+import software.amazon.awssdk.services.config.ConfigClient;
+import software.amazon.awssdk.services.config.model.ConfigurationRecorder;
+import software.amazon.awssdk.services.config.model.DescribeConfigurationRecordersResponse;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -59,25 +61,25 @@ public class CheckAWSConfigEnabledTest {
     
     
     @Mock
-    AmazonConfigClient awsConfigClient;
+    ConfigClient awsConfigClient;
 
     @Before
     public void setUp() throws Exception{
-        awsConfigClient = PowerMockito.mock(AmazonConfigClient.class); 
+        awsConfigClient = PowerMockito.mock(ConfigClient.class); 
     }
     @Test
     public void test()throws Exception{
-        ConfigurationRecorder dt = new ConfigurationRecorder();
-        dt.setName("test");
+        ConfigurationRecorder dt = ConfigurationRecorder.builder().build();
+        dt.name("test");
         Collection<ConfigurationRecorder> li = new ArrayList<>();
         li.add(dt);
-        DescribeConfigurationRecordersResult describeConfigurationRecordersResult = new DescribeConfigurationRecordersResult();
-        describeConfigurationRecordersResult.setConfigurationRecorders(li);
+        DescribeConfigurationRecordersResponse describeConfigurationRecordersResult = DescribeConfigurationRecordersResponse.builder().build();
+        describeConfigurationRecordersResult.configurationRecorders(li);
         
         
         Collection<ConfigurationRecorder> emptyList = new ArrayList<>();
-        DescribeConfigurationRecordersResult emptyDetectorsResult = new DescribeConfigurationRecordersResult();
-        emptyDetectorsResult.setConfigurationRecorders(emptyList);
+        DescribeConfigurationRecordersResponse emptyDetectorsResult = DescribeConfigurationRecordersResponse.builder().build();
+        emptyDetectorsResult.configurationRecorders(emptyList);
         
         
         mockStatic(PacmanUtils.class);

@@ -44,16 +44,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
-import com.amazonaws.services.identitymanagement.model.GetPolicyResult;
-import com.amazonaws.services.identitymanagement.model.GetPolicyVersionResult;
-import com.amazonaws.services.identitymanagement.model.ListAccessKeysResult;
-import com.amazonaws.services.identitymanagement.model.ListAttachedRolePoliciesResult;
-import com.amazonaws.services.identitymanagement.model.ListAttachedUserPoliciesResult;
-import com.amazonaws.services.identitymanagement.model.Policy;
-import com.amazonaws.services.identitymanagement.model.PolicyVersion;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AttachedPolicy;
+import software.amazon.awssdk.services.identitymanagement.model.GetPolicyResponse;
+import software.amazon.awssdk.services.identitymanagement.model.GetPolicyVersionResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListAccessKeysResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListAttachedRolePoliciesResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListAttachedUserPoliciesResponse;
+import software.amazon.awssdk.services.identitymanagement.model.Policy;
+import software.amazon.awssdk.services.identitymanagement.model.PolicyVersion;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -70,16 +69,16 @@ public class ServiceAccountPrivilegesRuleTest {
     
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
 
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
-    	 AttachedPolicy attachedPolicies = new AttachedPolicy();
-         attachedPolicies.setPolicyName("IAMFullAccess");
+    	 AttachedPolicy attachedPolicies = AttachedPolicy.builder().build();
+         attachedPolicies.policyName("IAMFullAccess");
          List<AttachedPolicy> policies = new ArrayList<>();
          policies.add(attachedPolicies);
         

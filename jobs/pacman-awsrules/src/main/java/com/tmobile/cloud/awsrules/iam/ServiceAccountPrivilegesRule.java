@@ -31,9 +31,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -92,11 +91,11 @@ public class ServiceAccountPrivilegesRule extends BasePolicy {
 		logger.debug("========ServiceAccountPrivilegesRule started=========");
 		Map<String, String> ruleParamIam = new HashMap<>();
 		ruleParamIam.putAll(ruleParam);
-		ruleParamIam.put(PacmanRuleConstants.REGION, Regions.DEFAULT_REGION.getName());
+		ruleParamIam.put(PacmanRuleConstants.REGION, Region.DEFAULT_REGION.id());
 
 		Map<String, Object> map = null;
 		Annotation annotation = null;
-		AmazonIdentityManagementClient identityManagementClient = null;
+		IdentityManagementClient identityManagementClient = null;
 
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String userName = resourceAttributes.get(PacmanRuleConstants.IAM_USER_NAME);
@@ -122,7 +121,7 @@ public class ServiceAccountPrivilegesRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, roleIdentifyingString, ruleParamIam);
-			identityManagementClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			identityManagementClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 			List<String> priviligesList = PacmanUtils.splitStringToAList(unApprovedIamActions, tagsSplitter);
 			if (userName.startsWith(PacmanRuleConstants.SERVICE_ACCOUNTS)) {
 				Set<String> actionSet = IAMUtils.getAllowedActionsByUserPolicy(identityManagementClient, userName);

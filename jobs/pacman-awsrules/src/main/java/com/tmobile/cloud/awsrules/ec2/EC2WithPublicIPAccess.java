@@ -25,8 +25,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;

@@ -32,11 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
-import com.amazonaws.services.cloudwatch.model.Datapoint;
-import com.amazonaws.services.cloudwatch.model.Dimension;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
+import software.amazon.awssdk.services.cloudwatch.model.Dimension;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -121,7 +121,7 @@ public class LambdaFunctionInvocationCountRule extends BasePolicy {
                 int targetThreshold = Integer.parseInt(targetThresholdStr);
 
                 int noOfHours = Integer.parseInt(timeperiod);
-                AmazonCloudWatchClient cloudWatchClient = null;
+                CloudWatchClient cloudWatchClient = null;
                 Annotation annotation = null;
                 int invocationSum = 0;
 
@@ -132,13 +132,13 @@ public class LambdaFunctionInvocationCountRule extends BasePolicy {
                     final GetMetricStatisticsRequest request = request(
                             resourceId, noOfHours);
 
-                    final GetMetricStatisticsResult result = cloudWatchClient
+                    final GetMetricStatisticsResponse result = cloudWatchClient
                             .getMetricStatistics(request);
 
-                    for (final Datapoint dataPoint : result.getDatapoints()) {
+                    for (final Datapoint dataPoint : result.datapoints()) {
 
                         invocationSum = invocationSum
-                                + dataPoint.getSum().intValue();
+                                + dataPoint.sum().intValue();
 
                     }
                     if (invocationSum > targetThreshold) {
@@ -184,15 +184,15 @@ public class LambdaFunctionInvocationCountRule extends BasePolicy {
             final String funcationValue, int hours) {
         final long twentyFourHrs = 1000 * 60 * 60l * hours;
         final int oneHour = 60 * 60 * hours;
-        return new GetMetricStatisticsRequest()
-                .withStartTime(new Date(new Date().getTime() - twentyFourHrs))
-                .withNamespace(PacmanRuleConstants.AWS_LAMBDA)
-                .withPeriod(oneHour)
-                .withDimensions(
-                        new Dimension().withName("FunctionName").withValue(
-                                funcationValue))
-                .withMetricName(PacmanRuleConstants.INVOCATIONS)
-                .withStatistics("Sum").withEndTime(new Date());
+        return GetMetricStatisticsRequest.builder()
+                .startTime(new Date(new Date().getTime() - twentyFourHrs))
+                .namespace(PacmanRuleConstants.AWS_LAMBDA)
+                .period(oneHour)
+                .dimensions(
+                        Dimension.builder().name("FunctionName").value(
+                                funcationValue).build())
+                .metricName(PacmanRuleConstants.INVOCATIONS)
+                .statistics("Sum").endTime(new Date()).build();
     }
 
     @Override
@@ -200,14 +200,14 @@ public class LambdaFunctionInvocationCountRule extends BasePolicy {
         return "This Rule check for Lambda Invocation for the given interval, if the count exceeds target size then creates an issue";
     }
 
-    private AmazonCloudWatchClient getClient(String roleIdentifyingString,
+    private CloudWatchClient getClient(String roleIdentifyingString,
             Map<String, String> ruleParam) {
         Map<String, Object> map = null;
-        AmazonCloudWatchClient cloudWatchClient = null;
+        CloudWatchClient cloudWatchClient = null;
         try {
             map = getClientFor(AWSService.CLOUDWATCH, roleIdentifyingString,
                     ruleParam);
-            cloudWatchClient = (AmazonCloudWatchClient) map
+            cloudWatchClient = (CloudWatchClient) map
                     .get(PacmanSdkConstants.CLIENT);
         } catch (UnableToCreateClientException e) {
             logger.error("unable to get client for following input", e);

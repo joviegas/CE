@@ -40,15 +40,15 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.cloudwatchevents.AmazonCloudWatchEventsClient;
-import com.amazonaws.services.cloudwatchevents.model.ListRulesResult;
-import com.amazonaws.services.cloudwatchevents.model.Rule;
+import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
+import software.amazon.awssdk.services.cloudwatchevents.model.ListRulesResponse;
+import software.amazon.awssdk.services.cloudwatchevents.model.Rule;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -59,26 +59,26 @@ public class CheckCloudWatchEventsForAllAccountsRuleTest {
     
     
     @Mock
-    AmazonCloudWatchEventsClient cloudWatchEventsClient;
+    CloudWatchEventsClient cloudWatchEventsClient;
 
     @Before
     public void setUp() throws Exception{
         mockStatic(Annotation.class);
         when(Annotation.buildAnnotation(anyObject(), anyObject())).thenReturn(CommonTestUtils.getMockAnnotation());
-        cloudWatchEventsClient = PowerMockito.mock(AmazonCloudWatchEventsClient.class); 
+        cloudWatchEventsClient = PowerMockito.mock(CloudWatchEventsClient.class); 
     }
     @Test
     public void test()throws Exception{
-        Rule rules = new Rule();
-        rules.setName("abc");
+        Rule rules = Rule.builder().build();
+        rules.name("abc");
         Collection<Rule> li = new ArrayList<>();
         li.add(rules);
-        ListRulesResult listRulesResult = new ListRulesResult();
-        listRulesResult.setRules(li);
+        ListRulesResponse listRulesResult = ListRulesResponse.builder().build();
+        listRulesResult.rules(li);
         
         Collection<Rule> emptyList = new ArrayList<>();
-        ListRulesResult emptyRulesResult = new ListRulesResult();
-        emptyRulesResult.setRules(emptyList);
+        ListRulesResponse emptyRulesResult = ListRulesResponse.builder().build();
+        emptyRulesResult.rules(emptyList);
         
         
         mockStatic(PacmanUtils.class);

@@ -37,16 +37,16 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetSAMLProviderRequest;
-import com.amazonaws.services.identitymanagement.model.GetSAMLProviderResult;
-import com.amazonaws.services.identitymanagement.model.ListAccessKeysResult;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetSamlProviderRequest;
+import software.amazon.awssdk.services.identitymanagement.model.GetSAMLProviderResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListAccessKeysResponse;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class})
@@ -56,16 +56,16 @@ public class CheckIamIdentityProviderWithADFSRuleTest {
     CheckIamIdentityProviderWithADFSRule checkIamIdentityProviderWithADFSRule;
     
     @Mock
-    AmazonIdentityManagementClient identityManagementClient;
+    IdentityManagementClient identityManagementClient;
     
     @Before
     public void setUp() throws Exception{
-        identityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class); 
+        identityManagementClient = PowerMockito.mock(IdentityManagementClient.class); 
     }
     @Test
     public void test()throws Exception{
-        GetSAMLProviderResult keysResult  = new GetSAMLProviderResult();
-        keysResult.getSAMLMetadataDocument();
+        GetSAMLProviderResponse keysResult  = GetSAMLProviderResponse.builder().build();
+        keysResult.samlMetadataDocument();
         mockStatic(PacmanUtils.class);
         when(PacmanUtils.doesAllHaveValue(anyString(),anyString(),anyString())).thenReturn(
                 true);

@@ -10,8 +10,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -92,7 +92,7 @@ public class PermissionsThroughGroupRule extends BasePolicy {
 
 		String description = null;
 		Map<String, Object> map = null;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 
 		ruleParamforIAM.putAll(ruleParam);
@@ -102,7 +102,7 @@ public class PermissionsThroughGroupRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 			
 			if(IAMUtils.isUserHasInvalidPermission(userName,iamClient)) {
 				return description = "IAM user has permissions without group!!";

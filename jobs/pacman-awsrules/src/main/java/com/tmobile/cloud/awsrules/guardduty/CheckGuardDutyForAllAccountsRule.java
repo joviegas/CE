@@ -29,9 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.amazonaws.services.guardduty.AmazonGuardDutyClient;
-import com.amazonaws.services.guardduty.model.ListDetectorsRequest;
-import com.amazonaws.services.guardduty.model.ListDetectorsResult;
+import software.amazon.awssdk.services.guardduty.GuardDutyClient;
+import software.amazon.awssdk.services.guardduty.model.ListDetectorsRequest;
+import software.amazon.awssdk.services.guardduty.model.ListDetectorsResponse;
 import com.google.gson.Gson;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -75,7 +75,7 @@ public class CheckGuardDutyForAllAccountsRule extends BasePolicy {
 
 		Map<String, Object> map = null; 
 		Annotation annotation = null;
-		AmazonGuardDutyClient dutyClient = null;
+		GuardDutyClient dutyClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String accountName= resourceAttributes.get(PacmanRuleConstants.ACCOUNT_NAME);
 		String severity = ruleParam.get(PacmanRuleConstants.SEVERITY);
@@ -98,13 +98,13 @@ public class CheckGuardDutyForAllAccountsRule extends BasePolicy {
 		
 		try {
 			map = getClientFor(AWSService.GUARD_DUTY, roleIdentifyingString, temp);
-			dutyClient = (AmazonGuardDutyClient) map.get(PacmanSdkConstants.CLIENT);
+			dutyClient = (GuardDutyClient) map.get(PacmanSdkConstants.CLIENT);
 			
-			ListDetectorsRequest detectorsRequest = new ListDetectorsRequest();
-            ListDetectorsResult detectorsResult = dutyClient.listDetectors(detectorsRequest);
+			ListDetectorsRequest detectorsRequest = ListDetectorsRequest.builder().build();
+            ListDetectorsResponse detectorsResult = dutyClient.listDetectors(detectorsRequest);
             boolean isDisabled = true;
             
-            if (!detectorsResult.getDetectorIds().isEmpty()) {
+            if (!detectorsResult.detectorIds().isEmpty()) {
                 isDisabled = false;
             }
 

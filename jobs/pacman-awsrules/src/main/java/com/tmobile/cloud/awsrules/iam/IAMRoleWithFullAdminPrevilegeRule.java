@@ -10,13 +10,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AttachedPolicy;
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
@@ -113,7 +112,7 @@ public class IAMRoleWithFullAdminPrevilegeRule extends BasePolicy {
 		String description = null;
 		Map<String, Object> map = null;
 		boolean isAdminPrevilege = false;
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 
 		ruleParamforIAM.putAll(ruleParam);
@@ -123,7 +122,7 @@ public class IAMRoleWithFullAdminPrevilegeRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 
 			List<AttachedPolicy> attachedPolicy = IAMUtils.getAttachedPolicyOfIAMRole(roleName, iamClient);
 

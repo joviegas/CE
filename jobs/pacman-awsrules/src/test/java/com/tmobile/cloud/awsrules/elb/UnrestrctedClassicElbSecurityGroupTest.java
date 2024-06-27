@@ -37,9 +37,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.elasticloadbalancing.model.Listener;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanEc2Utils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
@@ -124,9 +123,9 @@ public class UnrestrctedClassicElbSecurityGroupTest {
 	}
 
 	private List<Listener> getListenerPorts(String arn) {
-		Listener listener = new Listener();
-		listener.setLoadBalancerPort(80);
-		listener.setProtocol("HTTP");
+		Listener listener = Listener.builder().build();
+		listener.loadBalancerPort(80);
+		listener.protocol("HTTP");
 		//listener.setLoadBalancerP(arn);
 		return Arrays.asList(listener);
 	}

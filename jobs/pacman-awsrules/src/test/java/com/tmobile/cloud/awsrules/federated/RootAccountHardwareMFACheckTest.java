@@ -25,13 +25,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AssignmentStatusType;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryResult;
-import com.amazonaws.services.identitymanagement.model.ListVirtualMFADevicesRequest;
-import com.amazonaws.services.identitymanagement.model.ListVirtualMFADevicesResult;
-import com.amazonaws.services.identitymanagement.model.VirtualMFADevice;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AssignmentStatusType;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryResponse;
+import software.amazon.awssdk.services.identitymanagement.model.ListVirtualMfaDevicesRequest;
+import software.amazon.awssdk.services.identitymanagement.model.ListVirtualMFADevicesResponse;
+import software.amazon.awssdk.services.identitymanagement.model.VirtualMfaDevice;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -50,11 +49,11 @@ public class RootAccountHardwareMFACheckTest {
 	RootAccountHardwareMFACheck rootAccountHardwareMFACheck;
 
 	@Mock
-	AmazonIdentityManagementClient amazonIdentityManagementClient;
+	IdentityManagementClient amazonIdentityManagementClient;
 
 	@Before
 	public void setUp() throws Exception {
-		amazonIdentityManagementClient = PowerMockito.mock(AmazonIdentityManagementClient.class);
+		amazonIdentityManagementClient = PowerMockito.mock(IdentityManagementClient.class);
 	}
 
 	@Test
@@ -75,8 +74,8 @@ public class RootAccountHardwareMFACheckTest {
 		
 		when(amazonIdentityManagementClient.getAccountSummary(anyObject())).thenReturn(mockSummary());
 		
-		ListVirtualMFADevicesRequest listMfaRequest = new ListVirtualMFADevicesRequest();
-		when(amazonIdentityManagementClient.listVirtualMFADevices(listMfaRequest.withAssignmentStatus(AssignmentStatusType.Assigned))).thenReturn(mockMFAList());
+		ListVirtualMfaDevicesRequest listMfaRequest = ListVirtualMfaDevicesRequest.builder().build();
+		when(amazonIdentityManagementClient.listVirtualMFADevices(listMfaRequest.assignmentStatus(AssignmentStatusType.Assigned))).thenReturn(mockMFAList());
 		mockStatic(Annotation.class);
 		when(Annotation.buildAnnotation(anyObject(),anyObject())).thenReturn(getMockAnnotation());
 		PolicyResult ruleResult = spy.execute(ruleParam, resourceAttribute);
@@ -112,8 +111,8 @@ public class RootAccountHardwareMFACheckTest {
 		
 		when(amazonIdentityManagementClient.getAccountSummary(anyObject())).thenReturn(mockSummary());
 		
-		ListVirtualMFADevicesRequest listMfaRequest = new ListVirtualMFADevicesRequest();
-		when(amazonIdentityManagementClient.listVirtualMFADevices(listMfaRequest.withAssignmentStatus(AssignmentStatusType.Assigned))).thenReturn(null);
+		ListVirtualMfaDevicesRequest listMfaRequest = ListVirtualMfaDevicesRequest.builder().build();
+		when(amazonIdentityManagementClient.listVirtualMFADevices(listMfaRequest.assignmentStatus(AssignmentStatusType.Assigned))).thenReturn(null);
 		
 		PolicyResult ruleResult = spy.execute(ruleParam, resourceAttribute);
 
@@ -179,23 +178,23 @@ public class RootAccountHardwareMFACheckTest {
 		return resObj;
 	}
 	
-	private ListVirtualMFADevicesResult mockMFAList() {
+	private ListVirtualMFADevicesResponse mockMFAList() {
 		
-		ListVirtualMFADevicesResult result = new ListVirtualMFADevicesResult();
-		VirtualMFADevice device1 = new VirtualMFADevice();
-		device1.setSerialNumber("root-account-mfa-device");
-		VirtualMFADevice device2 = new VirtualMFADevice();
-		device2.setSerialNumber("5654767676534");
-		result.setVirtualMFADevices(Arrays.asList(device1,device2));
+		ListVirtualMFADevicesResponse result = ListVirtualMFADevicesResponse.builder().build();
+		VirtualMfaDevice device1 = VirtualMfaDevice.builder().build();
+		device1.serialNumber("root-account-mfa-device");
+		VirtualMfaDevice device2 = VirtualMfaDevice.builder().build();
+		device2.serialNumber("5654767676534");
+		result.virtualMfaDevices(Arrays.asList(device1,device2));
 		return result;
 	}
 	
-	private GetAccountSummaryResult mockSummary() {
-		GetAccountSummaryResult result = new GetAccountSummaryResult();
+	private GetAccountSummaryResponse mockSummary() {
+		GetAccountSummaryResponse result = GetAccountSummaryResponse.builder().build();
 		
 		Map<String,Integer> map = new HashMap<>();
 		map.put("AccountMFAEnabled", 1);
-		result.setSummaryMap(map);
+		result.summaryMap(map);
 		return result;
 	}
 

@@ -24,8 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
-
-import com.amazonaws.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import com.google.common.collect.HashMultimap;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -822,8 +821,8 @@ public class CommonTestUtils {
     }
     
     public static GroupIdentifier getGroupIdentifier(String groupId){
-        GroupIdentifier groupIdentifier = new GroupIdentifier();
-        groupIdentifier.setGroupId(groupId);
+        GroupIdentifier groupIdentifier = GroupIdentifier.builder().build();
+        groupIdentifier.groupId(groupId);
         return groupIdentifier;
     }
     

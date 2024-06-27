@@ -42,13 +42,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.cloudtrail.AWSCloudTrailClient;
-import com.amazonaws.services.cloudtrail.model.DescribeTrailsResult;
-import com.amazonaws.services.cloudtrail.model.Trail;
+import software.amazon.awssdk.services.cloudtrail.CloudTrailClient;
+import software.amazon.awssdk.services.cloudtrail.model.DescribeTrailsResponse;
+import software.amazon.awssdk.services.cloudtrail.model.Trail;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -59,26 +61,26 @@ public class CheckAWSCloudTrailConfigTest {
     
     
     @Mock
-    AWSCloudTrailClient cloudTrailClient;
+    CloudTrailClient cloudTrailClient;
 
     @Before
     public void setUp() throws Exception{
-        cloudTrailClient = PowerMockito.mock(AWSCloudTrailClient.class); 
+        cloudTrailClient = PowerMockito.mock(CloudTrailClient.class); 
     }
     @Test
     public void test()throws Exception{
-        Trail dt = new Trail();
-        dt.setName("test");
-        dt.setIsMultiRegionTrail(true);
+        Trail dt = Trail.builder().build();
+        dt.name("test");
+        dt.isMultiRegionTrail(true);
         Collection<Trail> li = new ArrayList<>();
         li.add(dt);
-        DescribeTrailsResult result = new DescribeTrailsResult();
-        result.setTrailList(li);
+        DescribeTrailsResponse result = DescribeTrailsResponse.builder().build();
+        result.trailList(li);
         
         
         Collection<Trail> emptyList = new ArrayList<>();
-        DescribeTrailsResult emptyDetectorsResult = new DescribeTrailsResult();
-        emptyDetectorsResult.setTrailList(emptyList);
+        DescribeTrailsResponse emptyDetectorsResult = DescribeTrailsResponse.builder().build();
+        emptyDetectorsResult.trailList(emptyList);
         
         
         mockStatic(PacmanUtils.class);

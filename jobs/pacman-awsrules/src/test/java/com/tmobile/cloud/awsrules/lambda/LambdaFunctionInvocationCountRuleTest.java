@@ -43,13 +43,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
-import com.amazonaws.services.cloudwatch.model.Datapoint;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
+
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -60,26 +62,26 @@ public class LambdaFunctionInvocationCountRuleTest {
     
     
     @Mock
-    AmazonCloudWatchClient cloudWatchClient;
+    CloudWatchClient cloudWatchClient;
 
     @Before
     public void setUp() throws Exception{
-        cloudWatchClient = PowerMockito.mock(AmazonCloudWatchClient.class); 
+        cloudWatchClient = PowerMockito.mock(CloudWatchClient.class); 
     }
     @Test
     public void test()throws Exception{
-        Datapoint dt = new Datapoint();
-        dt.setTimestamp(new Date());
-        dt.setSum(50.00);
+        Datapoint dt = Datapoint.builder().build();
+        dt.timestamp(new Date());
+        dt.sum(50.00);
         Collection<Datapoint> li = new ArrayList<>();
         li.add(dt);
-        GetMetricStatisticsResult result = new GetMetricStatisticsResult();
-        result.setDatapoints(li);
+        GetMetricStatisticsResponse result = GetMetricStatisticsResponse.builder().build();
+        result.datapoints(li);
         
         
         Collection<Datapoint> emptyList = new ArrayList<>();
-        GetMetricStatisticsResult emptyDetectorsResult = new GetMetricStatisticsResult();
-        emptyDetectorsResult.setDatapoints(emptyList);
+        GetMetricStatisticsResponse emptyDetectorsResult = GetMetricStatisticsResponse.builder().build();
+        emptyDetectorsResult.datapoints(emptyList);
         
         
         mockStatic(PacmanUtils.class);

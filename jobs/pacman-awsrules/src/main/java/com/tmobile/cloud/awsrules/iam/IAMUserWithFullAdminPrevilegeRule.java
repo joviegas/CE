@@ -11,13 +11,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import software.amazon.awssdk.services.identitymanagement.model.NoSuchEntityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.AttachedPolicy;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.AttachedPolicy;
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.tmobile.cloud.awsrules.utils.IAMUtils;
@@ -119,7 +118,7 @@ public class IAMUserWithFullAdminPrevilegeRule extends BasePolicy {
 		Map<String, Object> map = null;
 		boolean isAdminPrevilege = false;
 		Set<String> policyNames = new HashSet<>();
-		AmazonIdentityManagementClient iamClient = null;
+		IdentityManagementClient iamClient = null;
 		Map<String, String> ruleParamforIAM = new HashMap<>();
 		String description = "Customer managed policy or group having full admin privilege is attached to the user!!";
 
@@ -132,7 +131,7 @@ public class IAMUserWithFullAdminPrevilegeRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.IAM, ruleParamforIAM.get(PacmanSdkConstants.Role_IDENTIFYING_STRING), ruleParamforIAM);
-			iamClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+			iamClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
 
 			// List attached policies of a user
 			List<AttachedPolicy> attachedPolicy = IAMUtils.getAttachedPolicyOfIAMUser(userName, iamClient);

@@ -29,10 +29,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryRequest;
-import com.amazonaws.services.identitymanagement.model.GetAccountSummaryResult;
+import software.amazon.awssdk.services.identitymanagement.IdentityManagementClient;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryRequest;
+import software.amazon.awssdk.services.identitymanagement.model.GetAccountSummaryResponse;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
 import com.tmobile.pacman.commons.AWSService;
@@ -89,18 +88,18 @@ public class RootUserMFACheck extends BasePolicy {
 		LinkedHashMap<String,Object>issue = new LinkedHashMap<>();
 
 		Map<String, Object> map = null;
-        AmazonIdentityManagementClient identityManagementClient = null;
+        IdentityManagementClient identityManagementClient = null;
 
         try {
             map = getClientFor(AWSService.IAM, roleIdentifyingString, temp);
-            identityManagementClient = (AmazonIdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
+            identityManagementClient = (IdentityManagementClient) map.get(PacmanSdkConstants.CLIENT);
         } catch (UnableToCreateClientException e) {
             logger.error("unable to get client for following input", e);
             throw new InvalidInputException(e.toString());
         }
-        GetAccountSummaryRequest request = new GetAccountSummaryRequest();
-        GetAccountSummaryResult response = identityManagementClient.getAccountSummary(request);
-        Map<String, Integer> summaryMap = response.getSummaryMap();
+        GetAccountSummaryRequest request = GetAccountSummaryRequest.builder().build();
+        GetAccountSummaryResponse response = identityManagementClient.getAccountSummary(request);
+        Map<String, Integer> summaryMap = response.summaryMap();
         for(Map.Entry<String, Integer> sumMap : summaryMap.entrySet()){
         	if("AccountMFAEnabled".equalsIgnoreCase(sumMap.getKey()) && sumMap.getValue() == 0){
 				annotation = Annotation.buildAnnotation(ruleParam,Annotation.Type.ISSUE);

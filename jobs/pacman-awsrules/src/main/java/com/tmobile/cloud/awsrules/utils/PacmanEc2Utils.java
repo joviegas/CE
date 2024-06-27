@@ -27,16 +27,15 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeFlowLogsRequest;
-import com.amazonaws.services.ec2.model.DescribeFlowLogsResult;
-import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
-import com.amazonaws.services.ec2.model.DescribeVolumesResult;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.FlowLog;
-import com.amazonaws.services.ec2.model.GroupIdentifier;
-import com.amazonaws.services.ec2.model.Volume;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeFlowLogsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeFlowLogsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesResponse;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.FlowLog;
+import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
+import software.amazon.awssdk.services.ec2.model.Volume;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -56,25 +55,25 @@ public class PacmanEc2Utils {
      * @param request
      * @return
      */
-    public static List<Volume> collectAllVolumes(AmazonEC2 ec2ServiceClient,
+    public static List<Volume> collectAllVolumes(Ec2Client ec2ServiceClient,
             DescribeVolumesRequest request) {
-        DescribeVolumesResult result;
+        DescribeVolumesResponse result;
         String nextToken;
         List<Volume> volumes = new ArrayList<>();
         do {
             result = ec2ServiceClient.describeVolumes(request);
-            volumes.addAll(result.getVolumes());
-            nextToken = result.getNextToken();
-            request.setNextToken(nextToken);
+            volumes.addAll(result.volumes());
+            nextToken = result.nextToken();
+            request.nextToken(nextToken);
         } while (null != nextToken);
         return volumes;
     }
 
 
-    public static List<FlowLog> getFlowLogs(AmazonEC2 ec2ServiceClient,
+    public static List<FlowLog> getFlowLogs(Ec2Client ec2ServiceClient,
             DescribeFlowLogsRequest describeFlowLogsRequest) {
         List<FlowLog> flowLogs = new ArrayList<>();
-        DescribeFlowLogsResult flowLogsResult;
+        DescribeFlowLogsResponse flowLogsResult;
         String nextToken = null;
         do {
             try {
@@ -87,11 +86,11 @@ public class PacmanEc2Utils {
                 
             }
             if(null!=flowLogsResult){
-            flowLogs.addAll(flowLogsResult.getFlowLogs());
-            nextToken = flowLogsResult.getNextToken();
+            flowLogs.addAll(flowLogsResult.flowLogs());
+            nextToken = flowLogsResult.nextToken();
             }
            
-            describeFlowLogsRequest.setNextToken(nextToken);
+            describeFlowLogsRequest.nextToken(nextToken);
 
         } while (null != nextToken);
 
@@ -100,9 +99,9 @@ public class PacmanEc2Utils {
 
     public static Filter setFilters(String filterName, String filterValue) {
 
-        Filter filter = new Filter();
-        filter.setName(filterName);
-        filter.setValues(Arrays.asList(filterValue));
+        Filter filter = Filter.builder().build();
+        filter.name(filterName);
+        filter.values(Arrays.asList(filterValue));
         return filter;
     }
 
@@ -120,7 +119,7 @@ public class PacmanEc2Utils {
         for (GroupIdentifier securityGrp : secuityGroups) {
             StringBuilder requestBody = new StringBuilder(
                     "{\"query\":{\"bool\":{\"must\":[{\"term\":{\"groupid.keyword\":{\"value\":\""
-                            + securityGrp.getGroupId()
+                            + securityGrp.groupId()
                             + "\"}}},{\"term\":{\"cidrip.keyword\":{\"value\":\""
                             + cidrIp
                             + "\"}}},{\"term\":{\"type.keyword\":{\"value\":\"inbound\"}}}]}}}");
@@ -137,7 +136,7 @@ public class PacmanEc2Utils {
                     "hits").toString());
             JsonArray hitsArray = hitsJson.getAsJsonArray("hits");
             logger.info(sgRulesUrl);
-            logger.info(securityGrp.getGroupId());
+            logger.info(securityGrp.groupId());
             logger.info(portToCheck);
             for (int i = 0; i < hitsArray.size(); i++) {
                 JsonObject source = hitsArray.get(i).getAsJsonObject()

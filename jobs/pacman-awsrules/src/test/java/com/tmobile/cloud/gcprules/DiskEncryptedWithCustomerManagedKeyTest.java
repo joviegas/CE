@@ -1,6 +1,5 @@
 package com.tmobile.cloud.gcprules;
 
-import com.amazonaws.services.identitymanagement.model.InvalidInputException;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.azurerules.ActivityLog.ActivityLogRule;
 import com.tmobile.cloud.gcprules.vminstance.DiskEncryptedWithCustomerManagedKey;
@@ -9,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import software.amazon.awssdk.services.identitymanagement.model.InvalidInputException;
 
 import java.util.HashMap;
 import java.util.Map;

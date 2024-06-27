@@ -41,16 +41,17 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
-import com.amazonaws.services.apigateway.model.GetMethodResult;
-import com.amazonaws.services.apigateway.model.GetResourcesResult;
-import com.amazonaws.services.apigateway.model.Method;
-import com.amazonaws.services.apigateway.model.Resource;
+import software.amazon.awssdk.services.apigateway.ApiGatewayClient;
+import software.amazon.awssdk.services.apigateway.model.GetMethodResponse;
+import software.amazon.awssdk.services.apigateway.model.GetResourcesResponse;
+import software.amazon.awssdk.services.apigateway.model.Method;
+import software.amazon.awssdk.services.apigateway.model.Resource;
 import com.tmobile.cloud.awsrules.utils.CommonTestUtils;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.pacman.commons.exception.InvalidInputException;
 import com.tmobile.pacman.commons.exception.RuleExecutionFailedExeption;
 import com.tmobile.pacman.commons.policy.BasePolicy;
+
 @PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PacmanUtils.class,BasePolicy.class, Annotation.class})
@@ -61,35 +62,35 @@ public class CheckForApiGatewayProtectedTest {
     
     
     @Mock
-    AmazonApiGatewayClient apiGatewayClient;
+    ApiGatewayClient apiGatewayClient;
 
     @Before
     public void setUp() throws Exception{
         mockStatic(Annotation.class);
         when(Annotation.buildAnnotation(anyObject(),anyObject())).thenReturn(CommonTestUtils.getMockAnnotation());
-        apiGatewayClient = PowerMockito.mock(AmazonApiGatewayClient.class);
+        apiGatewayClient = PowerMockito.mock(ApiGatewayClient.class);
     }
     @Test
     public void test()throws Exception{
-        Method method = new Method();
-        method.setApiKeyRequired(true);
-        method.setHttpMethod("Get");
+        Method method = Method.builder().build();
+        method.apiKeyRequired(true);
+        method.httpMethod("Get");
         Map<String, Method> resourceMethods = new HashMap();
         resourceMethods.put("1", method);
-        Resource resource = new Resource();
-        resource.setResourceMethods(resourceMethods);
+        Resource resource = Resource.builder().build();
+        resource.resourceMethods(resourceMethods);
         Collection<Resource> li = new ArrayList<>();
         li.add(resource);
-        GetResourcesResult resourceResult = new GetResourcesResult();
-        resourceResult.setItems(li);
+        GetResourcesResponse resourceResult = GetResourcesResponse.builder().build();
+        resourceResult.items(li);
         
-        GetMethodResult methodResult = new GetMethodResult();
-        methodResult.setAuthorizationType("AuthorizationType");
-        methodResult.setApiKeyRequired(false);
-        methodResult.setHttpMethod("Get");
+        GetMethodResponse methodResult = GetMethodResponse.builder().build();
+        methodResult.authorizationType("AuthorizationType");
+        methodResult.apiKeyRequired(false);
+        methodResult.httpMethod("Get");
         Collection<Resource> emptyList = new ArrayList<>();
-        GetResourcesResult  emptyRulesResult = new GetResourcesResult ();
-        emptyRulesResult.setItems(emptyList);
+        GetResourcesResponse  emptyRulesResult = GetResourcesResponse.builder().build();
+        emptyRulesResult.items(emptyList);
         
         
         mockStatic(PacmanUtils.class);

@@ -28,11 +28,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.amazonaws.services.cloudwatchevents.AmazonCloudWatchEventsClient;
-import com.amazonaws.services.cloudwatchevents.model.ListRulesRequest;
-import com.amazonaws.services.cloudwatchevents.model.ListRulesResult;
-import com.amazonaws.services.cloudwatchevents.model.Rule;
+import software.amazon.awssdk.services.cloudwatchevents.CloudWatchEventsClient;
+import software.amazon.awssdk.services.cloudwatchevents.model.ListRulesRequest;
+import software.amazon.awssdk.services.cloudwatchevents.model.ListRulesResponse;
+import software.amazon.awssdk.services.cloudwatchevents.model.Rule;
 import com.google.gson.Gson;
 import com.tmobile.cloud.awsrules.utils.PacmanUtils;
 import com.tmobile.cloud.constants.PacmanRuleConstants;
@@ -75,7 +74,7 @@ public class CheckCloudWatchEventsForAllAccountsRule extends BasePolicy {
 
 		Map<String, Object> map = null;
 		Annotation annotation = null;
-		AmazonCloudWatchEventsClient cloudWatchEventsClient = null;
+		CloudWatchEventsClient cloudWatchEventsClient = null;
 		String roleIdentifyingString = ruleParam.get(PacmanSdkConstants.Role_IDENTIFYING_STRING);
 		String accountName = resourceAttributes.get("accountname");
 		String ruleName = ruleParam.get(PacmanRuleConstants.RULE_NAME);
@@ -100,22 +99,22 @@ public class CheckCloudWatchEventsForAllAccountsRule extends BasePolicy {
 
 		try {
 			map = getClientFor(AWSService.CLOUDWATCH_EVENTS,roleIdentifyingString, temp);
-			cloudWatchEventsClient = (AmazonCloudWatchEventsClient) map.get(PacmanSdkConstants.CLIENT);
+			cloudWatchEventsClient = (CloudWatchEventsClient) map.get(PacmanSdkConstants.CLIENT);
 
-			ListRulesRequest listRulesRequest = new ListRulesRequest();
-			listRulesRequest.setNamePrefix(ruleName);
-			ListRulesResult listRulesResult = cloudWatchEventsClient.listRules(listRulesRequest);
+			ListRulesRequest listRulesRequest = ListRulesRequest.builder().build();
+			listRulesRequest.namePrefix(ruleName);
+			ListRulesResponse listRulesResult = cloudWatchEventsClient.listRules(listRulesRequest);
 			String state = null;
 			boolean isRuleEmpty = false;
 			boolean isDisabled = false;
-			if (listRulesResult.getRules().isEmpty()) {
+			if (listRulesResult.rules().isEmpty()) {
 				isRuleEmpty = true;
 				failedType.put("ruleList", "Empty");
 			}
 
-			if (!listRulesResult.getRules().isEmpty()) {
-				for (Rule result : listRulesResult.getRules()) {
-					state = result.getState();
+			if (!listRulesResult.rules().isEmpty()) {
+				for (Rule result : listRulesResult.rules()) {
+					state = result.state();
 					logger.info(state);
 					if (!"ENABLED".equals(state)) {
 						isDisabled = true;
